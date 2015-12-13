@@ -1,3 +1,4 @@
+import os
 import spidev
 import time
 import RPi.GPIO as GPIO
@@ -12,8 +13,10 @@ def callback(pin):
 
 def int_communication(debug=True):
     GPIO_DR = 6
-    write_file = open('data.txt', 'w')
-
+    i = 0
+    while os.path.exists('data_' + str(i) + '.dat'):
+        i += 1
+    write_file = open('data_' + str(i) + '.dat', 'w')
     spi = spidev.SpiDev()
     spi.open(0,0)
     spi.max_speed_hz=(1000000)
@@ -29,6 +32,7 @@ def int_communication(debug=True):
     except KeyboardInterrupt:
         GPIO.cleanup()
         write_file.close()
+        print('Written to data_' + str(i) + '.dat')
 
 if __name__ == '__main__':
     int_communication(False)

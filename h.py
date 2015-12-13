@@ -10,7 +10,7 @@ def read_data(adr, data, wait=0.05):
 
 def write_and_readback(adr, data, wait=0.05):
     write_data(adr, data)
-    assert read_data(adr, 0x00) == data, print('Read back is failed!')
+    assert read_data(adr, 0x00) == data, 'Read back is failed!'
     print('Succeeded to write ' + data + ' @' + hex(adr))
 
 def setup():
@@ -26,4 +26,4 @@ def setup():
     write_and_readback(0x24,0x01)
 
 if __name__ == '__main__':
-    setup
+    setup()
