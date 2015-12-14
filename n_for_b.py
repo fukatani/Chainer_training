@@ -7,7 +7,6 @@
 # Created:     11/08/2015
 # Copyright:   (c) rf 2015
 # Licence:     <your licence>
-# ref http://aidiary.hatenablog.com/entry/20151005/1444051251
 #-------------------------------------------------------------------------------
 
 #%matplotlib inline
@@ -17,6 +16,7 @@ from sklearn.datasets import fetch_mldata
 from chainer import cuda, Variable, FunctionSet, optimizers
 import chainer.functions  as F
 import sys
+import data_manager
 import pickle
 
 #constructing newral network
@@ -25,8 +25,6 @@ class Mychain(object):
         x, t = Variable(x_data), Variable(y_data)
         h1 = F.dropout(F.relu(self.model.l1(x)),  train=train)
         h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
-##        h1 = F.relu(self.model.l1(x))
-##        h2 = F.relu(self.model.l2(h1))
         y  = self.model.l3(h2)
         return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 
@@ -36,24 +34,20 @@ class Mychain(object):
                 print('load from pickled data.')
                 self.model = pickle.load(f)
         except (IOError, EOFError):
-            input_matrix_size = 784
-            output_matrix_size = 10
-            n_units   = 200
-            self.model = FunctionSet(l1=F.Linear(input_matrix_size, n_units),
+            output_matrix_size = 2
+            n_units   = 20
+            self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, n_units),
                             l2=F.Linear(n_units, n_units),
                             l3=F.Linear(n_units, output_matrix_size))
 
     def set_optimizer(self):
-        self.optimizer = optimizers.AdaDelta(eps=1e-5)
+        self.optimizer = optimizers.AdaDelta()
         #self.optimizer = optimizers.Adam(alpha=0.01)
         self.optimizer.setup(self.model.collect_parameters())
 
     def learning(self, train_data_size, batchsize, n_epoch):
         sample = self.sample
         optimizer = self.optimizer
-
-##        x_train, x_test = np.split(sample.data,   [train_data_size])
-##        y_train, y_test = np.split(sample.target, [train_data_size])
 
         perm = np.random.permutation(len(sample.data))
         x_train = sample.data[perm[0:train_data_size]]
@@ -127,13 +121,12 @@ class Mychain(object):
         plt.show()
 
     def set_sample(self):
-        print('fetch MNIST dataset')
-        sample = fetch_mldata('MNIST original')
-        print('data fetch success')
-        sample.data   = sample.data.astype(np.float32)
-        sample.data  /= 255
-        sample.target = sample.target.astype(np.int32)
-        self.sample = sample
+        print('fetch data')
+        self.sample = data_manager.data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 1000, 'overlap', True).make_sample()
+        self.sample.data   = self.sample.data.astype(np.float32)
+        self.sample.data  /= np.max(self.sample.data)
+        self.sample.target = self.sample.target.astype(np.int32)
+        self.input_matrix_size = self.sample.matrix_size
 
     def __init__(self, pickle_enable=False, plot_enable=True):
         # setup chainer
@@ -142,8 +135,8 @@ class Mychain(object):
         self.set_optimizer()
         self.plot_enable = plot_enable
 
-        #self.learning(train_data_size=60000, batchsize=100, n_epoch=3)
-        self.learning(train_data_size=10000, batchsize=100, n_epoch=3)
+        self.learning(train_data_size=100, batchsize=10, n_epoch=20)
+        #self.learning(train_data_size=50000, batchsize=100, n_epoch=3)
 
         # Save final self.model
         if pickle_enable:

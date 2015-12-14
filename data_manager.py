@@ -63,25 +63,56 @@ class data_manager(object):
                     os.remove(self.get_split_file_name(file, file_index))
                 read_file.close()
 
+    def data_slide_split(self):
+        if not os.path.exists(self.split_result_dir):
+            os.mkdir(self.split_result_dir)
+        file_list = []
+        for (root, dirs, files) in os.walk(self.directory):
+            for file in files:
+                if '_split' in file: continue
+                file_index = 0
+                for offset in range(0, self.data_size, self.offset_width):
+                    read_file = open(os.path.join(root, file), 'r')
+                    write_line_index = 0
+                    write_file = open(self.get_split_file_name(file, file_index), 'w')
+                    for read_line_index, line in enumerate(read_file):
+                        if read_line_index < offset: continue
+                        write_file.write(line)
+                        write_line_index += 1
+                        if write_line_index == self.data_size:
+                            write_file.close()
+                            file_index += 1
+                            write_file = open(self.get_split_file_name(file, file_index), 'w')
+                            write_line_index = 0
+                    else:# delete last file
+                        write_file.close()
+                        os.remove(self.get_split_file_name(file, file_index))
+                    read_file.close()
+
     def plot(self):
+        self.clean_split_dir()
         plt.title('Title')
         plt.xlabel('Time(msec)')
         plt.ylabel('Amplitude')
 
-        if self.split_flag:
+        if self.split_mode == 'non_overlap':
             self.data_split()
+            if self.attenate_flag:
+                self.attenate()
+        elif self.split_mode == 'overlap':
+            self.data_slide_split()
             if self.attenate_flag:
                 self.attenate()
 
         for x, y, filename in self.get_xy():
-            if self.split_flag and 'split_' not in filename:
+            if self.split_mode and 'split_' not in filename:
                 continue
             plt.plot(x, y, label=filename)
         plt.legend()
         plt.show()
 
     def attenate(self):
-        for (root, dirs, files) in os.walk(self.directory):
+        for (root, dirs, files) in os.walk(self.split_result_dir):
             for file_name in files:
                 if '_split' not in file_name: continue
                 for a_index, a_coef in enumerate(self.a_coefs):
@@ -89,7 +120,8 @@ class data_manager(object):
                     read_file = open(read_file_name, 'r')
                     write_file = open(read_file_name.replace('_split_', '_split_a' + str(a_index) + '_'), 'w')
                     for line in read_file:
-                        write_file.write(str(int(int(line) * a_coef)) + '\n')
+                        #write_file.write(str(int(int(line) * a_coef)) + '\n')
+                        write_file.write(str(int(int(line) + a_coef)) + '\n')
                     write_file.close()
                     read_file.close()
 
@@ -98,14 +130,61 @@ class data_manager(object):
             for file_name in files:
                 os.remove(os.path.join(root, file_name))
 
-    def __init__(self, directory, data_size=10000, split_flag=False, attenate_flag=False):
+    def make_sample(self):
+        """ [Functions]
+            Make sample for analysis by chainer.
+        """
+        group_cnts = []
+        group_files_dict = {}
+        for (root, dirs, files) in os.walk(self.split_result_dir):
+            for i, suffix in enumerate(self.group_suffixes):
+                group_file = []
+                for file_name in files:
+                    if file_name[0:2] == suffix:
+                        group_file.append(file_name)
+                group_files_dict[i] = group_file
+
+        min_item_number = min([len(files) for files in group_files_dict.values()])
+        for key, value in group_files_dict.items():
+            group_files_dict[key] = value[0:min_item_number]
+
+        sample_size = min_item_number * len(self.group_suffixes)
+        data = np.zeros([sample_size, self.data_size], dtype=np.float32)
+        target = np.zeros(sample_size)
+        #TODO
+
+        sample_index = 0
+        for key, value in group_files_dict.items():
+            for file_name in value:
+                with open(os.path.join(self.split_result_dir, file_name), 'r') as rf:
+                    new_data = np.zeros(self.data_size, dtype=float32)
+                    for line_index, line in enumerate(rf):
+                        new_data[line_index] = int(line)
+                target[sample_index] = key
+                data[sample_index] = new_data
+                sample_index += 1
+
+        return Abstract_sample(self.data_size, data, target)
+
+    def __init__(self, directory, data_size=10000, split_mode='', attenate_flag=False):
         self.directory = directory
         self.data_size= data_size
-        self.split_flag = split_flag
+        self.offset_width = self.data_size / 4
+        self.split_mode = split_mode
         self.attenate_flag = attenate_flag
-        self.a_coefs = (0.95, 1.05)
+
+        self.a_coefs = (-100, 100)
+        self.group_suffixes = ('fu', 'in')
         self.split_result_dir = self.directory + '/split_result/'
 
+class Abstract_sample(object):
+    def __init__(self, matrix_size, data, target):
+        self.matrix_size = matrix_size
+        self.data = data
+        self.target = target
+
 if __name__ == '__main__':
-    data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 2000, True, True).plot()
+    dm = data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 1000, 'overlap', True)
+    dm.plot()
+    dm.make_sample()
     #data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 2000, True, True).clean_split_dir()
