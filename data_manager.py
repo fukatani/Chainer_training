@@ -85,12 +85,18 @@ class data_manager(object):
             for file_name in files:
                 if '_split' not in file_name: continue
                 for a_index, a_coef in enumerate(self.a_coefs):
-                    write_file = open(file_name.replace('_split_', '_split_a' + str(a_index) + '_'), 'w')
-                    read_file = open(file_name, 'r')
+                    read_file_name = os.path.join(self.split_result_dir, file_name)
+                    read_file = open(read_file_name, 'r')
+                    write_file = open(read_file_name.replace('_split_', '_split_a' + str(a_index) + '_'), 'w')
                     for line in read_file:
-                        write_file.write(int(int(line) * a_coef))
+                        write_file.write(str(int(int(line) * a_coef)) + '\n')
                     write_file.close()
                     read_file.close()
+
+    def clean_split_dir(self):
+        for (root, dirs, files) in os.walk(self.split_result_dir):
+            for file_name in files:
+                os.remove(os.path.join(root, file_name))
 
     def __init__(self, directory, data_size=10000, split_flag=False, attenate_flag=False):
         self.directory = directory
@@ -101,4 +107,5 @@ class data_manager(object):
         self.split_result_dir = self.directory + '/split_result/'
 
 if __name__ == '__main__':
-    data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 2000, True, False).plot()
+    data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 2000, True, True).plot()
+    #data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 2000, True, True).clean_split_dir()
