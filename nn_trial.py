@@ -7,6 +7,7 @@
 # Created:     11/08/2015
 # Copyright:   (c) rf 2015
 # Licence:     <your licence>
+# ref http://aidiary.hatenablog.com/entry/20151005/1444051251
 #-------------------------------------------------------------------------------
 
 #%matplotlib inline
@@ -24,6 +25,8 @@ class Mychain(object):
         x, t = Variable(x_data), Variable(y_data)
         h1 = F.dropout(F.relu(self.model.l1(x)),  train=train)
         h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
+##        h1 = F.relu(self.model.l1(x))
+##        h2 = F.relu(self.model.l2(h1))
         y  = self.model.l3(h2)
         return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 
@@ -35,22 +38,23 @@ class Mychain(object):
         except (IOError, EOFError):
             input_matrix_size = 784
             output_matrix_size = 10
-            n_units   = 100
+            n_units   = 200
             self.model = FunctionSet(l1=F.Linear(input_matrix_size, n_units),
                             l2=F.Linear(n_units, n_units),
                             l3=F.Linear(n_units, output_matrix_size))
 
     def set_optimizer(self):
-        self.optimizer = optimizers.Adam()
+        self.optimizer = optimizers.AdaDelta(eps=1e-5)
+        #self.optimizer = optimizers.Adam(alpha=0.01)
         self.optimizer.setup(self.model.collect_parameters())
 
-    def learning(self, batchsize, n_epoch):
-        N = 60000
+    def learning(self, train_data_size, batchsize, n_epoch):
         sample = self.sample
         optimizer = self.optimizer
-        x_train, x_test = np.split(sample.data,   [N])
-        y_train, y_test = np.split(sample.target, [N])
-        N_test = y_test.size
+
+        x_train, x_test = np.split(sample.data,   [train_data_size])
+        y_train, y_test = np.split(sample.target, [train_data_size])
+        test_data_size = y_test.size
 
         train_loss = []
         train_acc  = []
@@ -62,11 +66,11 @@ class Mychain(object):
             print 'epoch', epoch
 
             # training
-            perm = np.random.permutation(N)
+            perm = np.random.permutation(train_data_size)
             sum_accuracy = 0
             sum_loss = 0
 
-            for i in xrange(0, N, batchsize):
+            for i in xrange(0, train_data_size, batchsize):
                 x_batch = x_train[perm[i:i+batchsize]]
                 y_batch = y_train[perm[i:i+batchsize]]
 
@@ -84,25 +88,28 @@ class Mychain(object):
                 sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
 
             # display accuracy for training
-            print 'train mean loss={}, accuracy={}'.format(sum_loss / N, sum_accuracy / N)
+            print('train mean loss={}, accuracy={}'.format(sum_loss / train_data_size, sum_accuracy / train_data_size))
 
             # evaluation
             sum_accuracy = 0
             sum_loss     = 0
-            for i in xrange(0, N_test, batchsize):
+            for i in xrange(0, test_data_size, batchsize):
                 x_batch = x_test[i:i+batchsize]
                 y_batch = y_test[i:i+batchsize]
 
                 # calc accuracy for test
-                loss, acc = forward(x_batch, y_batch, train=False)
+                loss, acc = self.forward(x_batch, y_batch, train=False)
                 test_loss.append(loss.data)
                 test_acc.append(acc.data)
                 sum_loss     += float(cuda.to_cpu(loss.data)) * batchsize
                 sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
 
             # display accuracy for test
-            print('test  mean loss={}, accuracy={}'.format(sum_loss / N_test, sum_accuracy / N_test))
+            print('test  mean loss={}, accuracy={}'.format(sum_loss / test_data_size, sum_accuracy / test_data_size))
+        if self.plot_enable:
+            self.disp_plot(train_acc, test_acc)
 
+    def disp_plot(self, train_acc, test_acc):
         # display accuracy for test as graph
         plt.style.use('ggplot')
         plt.figure(figsize=(8,6))
@@ -122,13 +129,15 @@ class Mychain(object):
         sample.target = sample.target.astype(np.int32)
         self.sample = sample
 
-    def __init__(self, pickle_enable=False):
+    def __init__(self, pickle_enable=False, plot_enable=True):
         # setup chainer
         self.set_sample()
         self.set_model()
         self.set_optimizer()
+        self.plot_enable = plot_enable
 
-        self.learning(batchsize=100, n_epoch=3)
+        self.learning(train_data_size=60000, batchsize=100, n_epoch=3)
+        #self.learning(train_data_size=50000, batchsize=100, n_epoch=3)
 
         # Save final self.model
         if pickle_enable:
