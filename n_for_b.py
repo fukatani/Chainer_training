@@ -45,6 +45,18 @@ class Mychain(object):
         #self.optimizer = optimizers.Adam(alpha=0.01)
         self.optimizer.setup(self.model.collect_parameters())
 
+    def time_record(func):
+        import datetime
+        from functools import wraps
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start = datetime.datetime.today()
+            result = func(*args, **kwargs)
+            end = datetime.datetime.today()
+            print('time elapsed ' + str(end-start))
+        return wrapper
+
+    @time_record
     def learning(self, train_data_size, batchsize, n_epoch):
         sample = self.sample
         optimizer = self.optimizer
@@ -116,7 +128,7 @@ class Mychain(object):
         plt.plot(range(len(train_acc)), train_acc)
         plt.plot(range(len(test_acc)), test_acc)
         plt.legend(["train_acc","test_acc"],loc=4)
-        plt.title("Accuracy of digit recognition.")
+        plt.title("Accuracy of inoue/fukatani recognition.")
         plt.plot()
 
         if self.save_as_png:
@@ -128,6 +140,7 @@ class Mychain(object):
         print('fetch data')
         self.sample = data_manager.data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 1000, 'overlap', True).make_sample()
         self.sample.data   = self.sample.data.astype(np.float32)
+        self.sample.data  -= np.min(self.sample.data)
         self.sample.data  /= np.max(self.sample.data)
         self.sample.target = self.sample.target.astype(np.int32)
         self.input_matrix_size = self.sample.matrix_size
@@ -140,7 +153,7 @@ class Mychain(object):
         self.plot_enable = plot_enable
         self.save_as_png = save_as_png
 
-        self.learning(train_data_size=120, batchsize=20, n_epoch=200)
+        self.learning(train_data_size=100, batchsize=20, n_epoch=20)
         #self.learning(train_data_size=50000, batchsize=100, n_epoch=3)
 
         # Save final self.model
