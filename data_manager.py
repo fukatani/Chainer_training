@@ -188,7 +188,6 @@ class Abstract_sample(object):
         self.target = target
 
 if __name__ == '__main__':
-    dm = data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 1000, 'overlap', True)
+    dm = data_manager('./numbers', 1000, 'overlap', True)
     dm.plot()
     dm.make_sample()
-    #data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 2000, True, True).clean_split_dir()

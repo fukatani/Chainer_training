@@ -56,7 +56,7 @@ class Mychain(object):
             print('time elapsed ' + str(end-start))
         return wrapper
 
-    #@time_record
+    @time_record
     def learning(self, train_data_size, batchsize, n_epoch):
         sample = self.sample
         optimizer = self.optimizer
@@ -146,7 +146,7 @@ class Mychain(object):
         self.input_matrix_size = self.sample.matrix_size
 
     def disp_w(self):
-        plt.clf()
+        plt.close('all')
         plt.style.use('ggplot')
         for i in range(4):
             plt.subplot(2, 2, i+1)
@@ -163,7 +163,7 @@ class Mychain(object):
         self.plot_enable = plot_enable
         self.save_as_png = save_as_png
 
-        self.learning(train_data_size=100, batchsize=20, n_epoch=20)
+        self.learning(train_data_size=120, batchsize=20, n_epoch=20)
         #self.disp_w()
 
         # Save final self.model
