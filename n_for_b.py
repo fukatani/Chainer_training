@@ -56,7 +56,7 @@ class Mychain(object):
             print('time elapsed ' + str(end-start))
         return wrapper
 
-    @time_record
+    #@time_record
     def learning(self, train_data_size, batchsize, n_epoch):
         sample = self.sample
         optimizer = self.optimizer
@@ -145,6 +145,16 @@ class Mychain(object):
         self.sample.target = self.sample.target.astype(np.int32)
         self.input_matrix_size = self.sample.matrix_size
 
+    def disp_w(self):
+        plt.clf()
+        plt.style.use('ggplot')
+        for i in range(4):
+            plt.subplot(2, 2, i+1)
+            plt.plot(self.model.l1.W[i]), np.arange(0, len(self.model.l1.W[i]))
+        plt.title("Weight of l1.")
+        plt.plot()
+        plt.show()
+
     def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True):
         # setup chainer
         self.set_sample()
@@ -154,7 +164,7 @@ class Mychain(object):
         self.save_as_png = save_as_png
 
         self.learning(train_data_size=100, batchsize=20, n_epoch=20)
-        #self.learning(train_data_size=50000, batchsize=100, n_epoch=3)
+        #self.disp_w()
 
         # Save final self.model
         if pickle_enable:
