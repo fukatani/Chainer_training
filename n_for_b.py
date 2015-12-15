@@ -21,12 +21,15 @@ import pickle
 
 #constructing newral network
 class Mychain(object):
-    def forward(self, x_data, y_data, train=True):
+    def forward(self, x_data, y_data, train=True, answer=False):
         x, t = Variable(x_data), Variable(y_data)
         h1 = F.dropout(F.relu(self.model.l1(x)),  train=train)
         h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
         y  = self.model.l3(h2)
-        return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
+        if answer:
+            return [np.argmax(data) for data in y.data]
+        else:
+            return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 
     def set_model(self):
         try:
@@ -35,7 +38,7 @@ class Mychain(object):
                 self.model = pickle.load(f)
         except (IOError, EOFError):
             output_matrix_size = 2
-            n_units   = 20
+            n_units   = 200
             self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, n_units),
                             l2=F.Linear(n_units, n_units),
                             l3=F.Linear(n_units, output_matrix_size))
@@ -148,14 +151,42 @@ class Mychain(object):
     def disp_w(self):
         plt.close('all')
         plt.style.use('ggplot')
-        for i in range(4):
-            plt.subplot(2, 2, i+1)
+        for i in range(16):
+            plt.subplot(4, 4, i+1)
             plt.plot(self.model.l1.W[i]), np.arange(0, len(self.model.l1.W[i]))
         plt.title("Weight of l1.")
         plt.plot()
         plt.show()
 
-    def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True):
+    def extract_test_sample(self, test_data_size=9):
+        perm = np.random.permutation(self.sample.target.size)
+        x_batch = self.sample.data[perm[0:test_data_size]]
+        y_batch = self.sample.target[perm[0:test_data_size]]
+        return x_batch, y_batch
+
+    def final_test(self, x_batch, y_batch=None):
+        #TODO
+        plt.close('all')
+        plt.style.use('fivethirtyeight')
+        #size = 28
+        if y_batch is None:
+            y_batch = np.zeros(len(x_batch))
+        for i in range(y_batch.size):
+            x = x_batch[i:i+1]
+            y = y_batch[i:i+1]
+            recog_answer = self.forward(x, y, train=False, answer=True)[0]
+            answer = y[0]
+
+            plt.subplot(3, 3, i+1)
+            plt.plot(np.arange(0, 1000, 1), x[0])
+            plt.title("ans=%d, recog=%d"%(answer, recog_answer), size=8)
+            plt.tick_params(labelbottom="off")
+            plt.tick_params(labelleft="off")
+        if self.save_as_png:
+            plt.savefig('final_test.png')
+        plt.show()
+
+    def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True, final_test_enable=True):
         # setup chainer
         self.set_sample()
         self.set_model()
@@ -163,8 +194,11 @@ class Mychain(object):
         self.plot_enable = plot_enable
         self.save_as_png = save_as_png
 
-        self.learning(train_data_size=120, batchsize=20, n_epoch=20)
+        self.learning(train_data_size=120, batchsize=20, n_epoch=10)
         #self.disp_w()
+        if final_test_enable:
+            x_batch, y_batch = self.extract_test_sample()
+            self.final_test(x_batch, y_batch)
 
         # Save final self.model
         if pickle_enable:

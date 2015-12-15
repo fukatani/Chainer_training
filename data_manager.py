@@ -154,8 +154,6 @@ class data_manager(object):
         sample_size = min_item_number * len(self.group_suffixes)
         data = np.zeros([sample_size, self.data_size], dtype=np.float32)
         target = np.zeros(sample_size)
-        #TODO
-
         sample_index = 0
         for key, value in group_files_dict.items():
             for file_name in value:
@@ -188,6 +186,6 @@ class Abstract_sample(object):
         self.target = target
 
 if __name__ == '__main__':
-    dm = data_manager('./numbers', 1000, 'overlap', True)
+    dm = data_manager('./numbers', 1000, 'overlap', save_as_png=False)
     dm.plot()
     dm.make_sample()
