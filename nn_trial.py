@@ -143,7 +143,7 @@ class Mychain(object):
         self.plot_enable = plot_enable
 
         #self.learning(train_data_size=60000, batchsize=100, n_epoch=3)
-        self.learning(train_data_size=10000, batchsize=100, n_epoch=3)
+        self.learning(train_data_size=2000, batchsize=100, n_epoch=10)
 
         # Save final self.model
         if pickle_enable:

@@ -109,7 +109,10 @@ class data_manager(object):
                 continue
             plt.plot(x, y, label=filename)
         plt.legend()
-        plt.show()
+        if self.save_as_png:
+            plt.savefig('data.png')
+        else:
+            plt.show()
 
     def attenate(self):
         for (root, dirs, files) in os.walk(self.split_result_dir):
@@ -157,7 +160,7 @@ class data_manager(object):
         for key, value in group_files_dict.items():
             for file_name in value:
                 with open(os.path.join(self.split_result_dir, file_name), 'r') as rf:
-                    new_data = np.zeros(self.data_size, dtype=float32)
+                    new_data = np.zeros(self.data_size, dtype=np.float32)
                     for line_index, line in enumerate(rf):
                         new_data[line_index] = int(line)
                 target[sample_index] = key
@@ -166,12 +169,13 @@ class data_manager(object):
 
         return Abstract_sample(self.data_size, data, target)
 
-    def __init__(self, directory, data_size=10000, split_mode='', attenate_flag=False):
+    def __init__(self, directory, data_size=10000, split_mode='', attenate_flag=False, save_as_png=True):
         self.directory = directory
         self.data_size= data_size
         self.offset_width = self.data_size / 4
         self.split_mode = split_mode
         self.attenate_flag = attenate_flag
+        self.save_as_png = save_as_png
 
         self.a_coefs = (-100, 100)
         self.group_suffixes = ('fu', 'in')

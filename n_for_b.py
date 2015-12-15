@@ -118,7 +118,11 @@ class Mychain(object):
         plt.legend(["train_acc","test_acc"],loc=4)
         plt.title("Accuracy of digit recognition.")
         plt.plot()
-        plt.show()
+
+        if self.save_as_png:
+            plt.savefig('learn_result.png')
+        else:
+            plt.show()
 
     def set_sample(self):
         print('fetch data')
@@ -128,14 +132,15 @@ class Mychain(object):
         self.sample.target = self.sample.target.astype(np.int32)
         self.input_matrix_size = self.sample.matrix_size
 
-    def __init__(self, pickle_enable=False, plot_enable=True):
+    def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True):
         # setup chainer
         self.set_sample()
         self.set_model()
         self.set_optimizer()
         self.plot_enable = plot_enable
+        self.save_as_png = save_as_png
 
-        self.learning(train_data_size=100, batchsize=10, n_epoch=20)
+        self.learning(train_data_size=120, batchsize=20, n_epoch=200)
         #self.learning(train_data_size=50000, batchsize=100, n_epoch=3)
 
         # Save final self.model
