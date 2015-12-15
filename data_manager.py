@@ -110,7 +110,7 @@ class data_manager(object):
             plt.plot(x, y, label=filename)
         plt.legend()
         if self.save_as_png:
-            plt.savefig('data.png')
+            plt.savefig('./Image/data.png')
         else:
             plt.show()
 

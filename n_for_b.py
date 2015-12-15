@@ -135,7 +135,7 @@ class Mychain(object):
         plt.plot()
 
         if self.save_as_png:
-            plt.savefig('learn_result.png')
+            plt.savefig('./Image/learn_result.png')
         else:
             plt.show()
 
@@ -183,7 +183,7 @@ class Mychain(object):
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
         if self.save_as_png:
-            plt.savefig('final_test.png')
+            plt.savefig('./Image/final_test.png')
         plt.show()
 
     def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True, final_test_enable=True):
