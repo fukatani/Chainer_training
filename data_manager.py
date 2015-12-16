@@ -13,173 +13,113 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+#future replaced data_manager
+
 class data_manager(object):
-    def get_xy(self):
-        file_list = []
-        for (root, dirs, files) in os.walk(self.directory):
-            for file in files:
-                file_name = os.path.join(root, file)
-                max_data_num = self.get_sum_line(file_name)
-                readfile = open(file_name, 'r')
-                y = np.zeros(max_data_num)
-                x = np.linspace(0, max_data_num-1, max_data_num)
-                for i, line in enumerate(readfile):
-                    y[i] = str(line)
-                    if i == max_data_num - 1:
-                        break
-                readfile.close()
-                yield x, y, file
+    def get_xy(self, data_dict):
+        for name, data in data_dict.items():
+            x = np.arange(0, self.data_size, 1)
+            yield x, data, name
 
     def get_sum_line(self, filename):
         return sum(1 for line in open(filename, 'r'))
 
-    def get_split_file_name(self, read_file_name, index):
-        file_name = os.path.join(self.split_result_dir, read_file_name)
-        return file_name.replace('.dat', '_split_' + str(index) + '.dat')
+    def data_slide_split(self):
+        self.splited_data_dict = {}
+        for name, data_array in self.raw_data_dict.items():
+            i = 0
+            while i * self.offset_width + self.data_size < self.array_size:
+                self.splited_data_dict[name + '_s' + str(i)] = data_array[i * self.offset_width: i * self.offset_width + self.data_size]
+                i += 1
 
-    def data_split(self):
-        if not os.path.exists(self.split_result_dir):
-            os.mkdir(self.split_result_dir)
-        file_list = []
+    def attenate(self, data_dict):
+        attenated_data_dict = {}
+        for name, data_array in data_dict.items():
+            for i, coef in enumerate(self.a_coefs):
+                attenated_data_dict[name + '_a' + str(i)] = data_array + coef
+        return attenated_data_dict
+
+    def read_all_data(self):
+        self.raw_data_dict = {}
         for (root, dirs, files) in os.walk(self.directory):
-
-            for file in files:
-                if '_split' in file:
-                    continue
-                read_file = open(os.path.join(root, file), 'r')
-                file_index = 0
-                write_file = open(self.get_split_file_name(file, file_index), 'w')
+            self.array_size = min([self.get_sum_line(os.path.join(root, name)) for name in files])
+            for file_name in files:
+                new_array = np.zeros(self.array_size)
+                read_file = open(os.path.join(root, file_name), 'r')
                 i = 0
                 for line in read_file:
-                    write_file.write(line)
+                    new_array[i] = int(line)
                     i += 1
-                    if i == self.data_size:
-                        write_file.close()
-                        file_index += 1
-                        write_file = open(self.get_split_file_name(file, file_index), 'w')
-                        i = 0
-                else:# delete last file
-                    write_file.close()
-                    os.remove(self.get_split_file_name(file, file_index))
+                    if i == self.array_size:
+                        break
                 read_file.close()
-
-    def data_slide_split(self):
-        if not os.path.exists(self.split_result_dir):
-            os.mkdir(self.split_result_dir)
-        file_list = []
-        for (root, dirs, files) in os.walk(self.directory):
-            for file in files:
-                if '_split' in file: continue
-                file_index = 0
-                for offset in range(0, self.data_size, self.offset_width):
-                    read_file = open(os.path.join(root, file), 'r')
-                    write_line_index = 0
-                    write_file = open(self.get_split_file_name(file, file_index), 'w')
-                    for read_line_index, line in enumerate(read_file):
-                        if read_line_index < offset: continue
-                        write_file.write(line)
-                        write_line_index += 1
-                        if write_line_index == self.data_size:
-                            write_file.close()
-                            file_index += 1
-                            write_file = open(self.get_split_file_name(file, file_index), 'w')
-                            write_line_index = 0
-                    else:# delete last file
-                        write_file.close()
-                        os.remove(self.get_split_file_name(file, file_index))
-                    read_file.close()
+                self.raw_data_dict[file_name] = new_array
 
     def plot(self):
-        self.clean_split_dir()
         plt.title('Title')
         plt.xlabel('Time(msec)')
         plt.ylabel('Amplitude')
+        data_dict = self.get_data()
 
-        if self.split_mode == 'non_overlap':
-            self.data_split()
-            if self.attenate_flag:
-                self.attenate()
-        elif self.split_mode == 'overlap':
-            self.data_slide_split()
-            if self.attenate_flag:
-                self.attenate()
-
-        for x, y, filename in self.get_xy():
-            if self.split_mode and 'split_' not in filename:
-                continue
-            plt.plot(x, y, label=filename)
+        for x, y, name in self.get_xy(data_dict):
+            plt.plot(x, y, label=name)
         plt.legend()
         if self.save_as_png:
             plt.savefig('./Image/data.png')
         else:
             plt.show()
 
-    def attenate(self):
-        for (root, dirs, files) in os.walk(self.split_result_dir):
-            for file_name in files:
-                if '_split' not in file_name: continue
-                for a_index, a_coef in enumerate(self.a_coefs):
-                    read_file_name = os.path.join(self.split_result_dir, file_name)
-                    read_file = open(read_file_name, 'r')
-                    write_file = open(read_file_name.replace('_split_', '_split_a' + str(a_index) + '_'), 'w')
-                    for line in read_file:
-                        #write_file.write(str(int(int(line) * a_coef)) + '\n')
-                        write_file.write(str(int(int(line) + a_coef)) + '\n')
-                    write_file.close()
-                    read_file.close()
+    def get_data(self):
+        self.data_slide_split()
+        return self.attenate(self.splited_data_dict)
 
-    def clean_split_dir(self):
-        for (root, dirs, files) in os.walk(self.split_result_dir):
-            for file_name in files:
-                os.remove(os.path.join(root, file_name))
+    def get_target(self, name):
+        return 0 if name[0:2] == 'fu' else 1
 
-    def make_sample(self):
+    def process_sample_backend(func):
+        import datetime
+        from functools import wraps
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            sample = func(*args, **kwargs)
+            sample.data  -= np.min(sample.data)
+            sample.data  /= np.max(sample.data)
+            sample.data   = sample.data.astype(np.float32)
+            sample.target = sample.target.astype(np.int32)
+            return sample
+        return wrapper
+
+    @process_sample_backend
+    def make_sample(self):#TODO
         """ [Functions]
             Make sample for analysis by chainer.
         """
-        group_cnts = []
-        group_files_dict = {}
-        for (root, dirs, files) in os.walk(self.split_result_dir):
-            for i, suffix in enumerate(self.group_suffixes):
-                group_file = []
-                for file_name in files:
-                    if file_name[0:2] == suffix:
-                        group_file.append(file_name)
-                group_files_dict[i] = group_file
+        data_dict = self.get_data()
+        sample_size = len(data_dict.keys())
 
-        min_item_number = min([len(files) for files in group_files_dict.values()])
-        for key, value in group_files_dict.items():
-            group_files_dict[key] = value[0:min_item_number]
-
-        sample_size = min_item_number * len(self.group_suffixes)
+        #initialize
         data = np.zeros([sample_size, self.data_size], dtype=np.float32)
         target = np.zeros(sample_size)
-        sample_index = 0
-        for key, value in group_files_dict.items():
-            for file_name in value:
-                with open(os.path.join(self.split_result_dir, file_name), 'r') as rf:
-                    new_data = np.zeros(self.data_size, dtype=np.float32)
-                    for line_index, line in enumerate(rf):
-                        new_data[line_index] = int(line)
-                target[sample_index] = key
-                data[sample_index] = new_data
-                sample_index += 1
 
+        sample_index = 0
+        for name, array in data_dict.items():
+            target[sample_index] = self.get_target(name)
+            data[sample_index] = array
+            sample_index += 1
         return Abstract_sample(self.data_size, data, target, len(self.group_suffixes))
 
     def __init__(self, directory, data_size=10000, split_mode='', attenate_flag=False, save_as_png=True):
         self.directory = directory
         self.data_size= data_size
         self.offset_width = self.data_size / 4
-        self.split_mode = split_mode
         self.attenate_flag = attenate_flag
         self.save_as_png = save_as_png
 
         self.a_coefs = (-100, 100)
         self.group_suffixes = ('fu', 'in')
-        self.split_result_dir = self.directory + '/split_result/'
         if save_as_png and not os.path.exists('./Image'):
             os.mkdir('./Image')
+        self.read_all_data()
 
 class Abstract_sample(object):
     def __init__(self, matrix_size, data, target, output_matrix_size):
@@ -189,6 +129,6 @@ class Abstract_sample(object):
         self.output_matrix_size = output_matrix_size
 
 if __name__ == '__main__':
-    dm = data_manager('./numbers', 1000, 'overlap', True, save_as_png=True)
-    dm.plot()
+    dm = data_manager('./numbers', 1000, 'overlap', True, save_as_png=False)
+    #dm.plot()
     dm.make_sample()

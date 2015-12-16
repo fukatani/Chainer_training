@@ -142,10 +142,6 @@ class Mychain(object):
     def set_sample(self):
         print('fetch data')
         self.sample = data_manager.data_manager('./numbers', 1000, 'overlap', True).make_sample()
-        self.sample.data   = self.sample.data.astype(np.float32)
-        self.sample.data  -= np.min(self.sample.data)
-        self.sample.data  /= np.max(self.sample.data)
-        self.sample.target = self.sample.target.astype(np.int32)
         self.input_matrix_size = self.sample.matrix_size
         self.output_matrix_size = self.sample.output_matrix_size
 
@@ -179,7 +175,7 @@ class Mychain(object):
             answer = y[0]
 
             plt.subplot(3, 3, i+1)
-            plt.plot(np.arange(0, 1000, 1), x[0])
+            plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
             plt.title("ans=%d, recog=%d"%(answer, recog_answer), size=8)
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
@@ -197,7 +193,7 @@ class Mychain(object):
         if save_as_png and not os.path.exists('./Image'):
             os.mkdir('./Image')
 
-        self.learning(train_data_size=120, batchsize=20, n_epoch=10)
+        self.learning(train_data_size=100, batchsize=10, n_epoch=10)
         #self.disp_w()
         if final_test_enable:
             x_batch, y_batch = self.extract_test_sample()
