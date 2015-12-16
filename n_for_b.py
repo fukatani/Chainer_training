@@ -14,10 +14,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import fetch_mldata
 from chainer import cuda, Variable, FunctionSet, optimizers
-import chainer.functions  as F
+import chainer.functions as F
 import sys
 import data_manager
 import pickle
+import os
 
 #constructing newral network
 class Mychain(object):
@@ -37,11 +38,10 @@ class Mychain(object):
                 print('load from pickled data.')
                 self.model = pickle.load(f)
         except (IOError, EOFError):
-            output_matrix_size = 2
             n_units   = 200
             self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, n_units),
                             l2=F.Linear(n_units, n_units),
-                            l3=F.Linear(n_units, output_matrix_size))
+                            l3=F.Linear(n_units, self.output_matrix_size))
 
     def set_optimizer(self):
         self.optimizer = optimizers.AdaDelta()
@@ -141,12 +141,13 @@ class Mychain(object):
 
     def set_sample(self):
         print('fetch data')
-        self.sample = data_manager.data_manager('C:/Users/rf/Documents/github/Chainer_training/numbers', 1000, 'overlap', True).make_sample()
+        self.sample = data_manager.data_manager('./numbers', 1000, 'overlap', True).make_sample()
         self.sample.data   = self.sample.data.astype(np.float32)
         self.sample.data  -= np.min(self.sample.data)
         self.sample.data  /= np.max(self.sample.data)
         self.sample.target = self.sample.target.astype(np.int32)
         self.input_matrix_size = self.sample.matrix_size
+        self.output_matrix_size = self.sample.output_matrix_size
 
     def disp_w(self):
         plt.close('all')
@@ -193,6 +194,8 @@ class Mychain(object):
         self.set_optimizer()
         self.plot_enable = plot_enable
         self.save_as_png = save_as_png
+        if save_as_png and not os.path.exists('./Image'):
+            os.mkdir('./Image')
 
         self.learning(train_data_size=120, batchsize=20, n_epoch=10)
         #self.disp_w()

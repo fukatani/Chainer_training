@@ -165,7 +165,7 @@ class data_manager(object):
                 data[sample_index] = new_data
                 sample_index += 1
 
-        return Abstract_sample(self.data_size, data, target)
+        return Abstract_sample(self.data_size, data, target, len(self.group_suffixes))
 
     def __init__(self, directory, data_size=10000, split_mode='', attenate_flag=False, save_as_png=True):
         self.directory = directory
@@ -178,14 +178,17 @@ class data_manager(object):
         self.a_coefs = (-100, 100)
         self.group_suffixes = ('fu', 'in')
         self.split_result_dir = self.directory + '/split_result/'
+        if save_as_png and not os.path.exists('./Image'):
+            os.mkdir('./Image')
 
 class Abstract_sample(object):
-    def __init__(self, matrix_size, data, target):
+    def __init__(self, matrix_size, data, target, output_matrix_size):
         self.matrix_size = matrix_size
         self.data = data
         self.target = target
+        self.output_matrix_size = output_matrix_size
 
 if __name__ == '__main__':
-    dm = data_manager('./numbers', 1000, 'overlap', save_as_png=False)
+    dm = data_manager('./numbers', 1000, 'overlap', True, save_as_png=True)
     dm.plot()
     dm.make_sample()
