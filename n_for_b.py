@@ -12,7 +12,6 @@
 #%matplotlib inline
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.datasets import fetch_mldata
 from chainer import cuda, Variable, FunctionSet, optimizers
 import chainer.functions as F
 import sys
@@ -142,7 +141,7 @@ class Mychain(object):
     def set_sample(self):
         print('fetch data')
         self.sample = data_manager.data_manager('./numbers', 1000, 'overlap', True).make_sample()
-        self.input_matrix_size = self.sample.matrix_size
+        self.input_matrix_size = self.sample.input_matrix_size
         self.output_matrix_size = self.sample.output_matrix_size
 
     def disp_w(self):

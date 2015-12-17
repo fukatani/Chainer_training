@@ -90,7 +90,7 @@ class data_manager(object):
         return wrapper
 
     @process_sample_backend
-    def make_sample(self):#TODO
+    def make_sample(self):
         """ [Functions]
             Make sample for analysis by chainer.
         """
@@ -106,7 +106,7 @@ class data_manager(object):
             target[sample_index] = self.get_target(name)
             data[sample_index] = array
             sample_index += 1
-        return Abstract_sample(self.data_size, data, target, len(self.group_suffixes))
+        return Abstract_sample(data, target, len(self.group_suffixes))
 
     def __init__(self, directory, data_size=10000, split_mode='', attenate_flag=False, save_as_png=True):
         self.directory = directory
@@ -122,9 +122,9 @@ class data_manager(object):
         self.read_all_data()
 
 class Abstract_sample(object):
-    def __init__(self, matrix_size, data, target, output_matrix_size):
-        self.matrix_size = matrix_size
+    def __init__(self, data, target, output_matrix_size):
         self.data = data
+        self.input_matrix_size = data[0].size
         self.target = target
         self.output_matrix_size = output_matrix_size
 
