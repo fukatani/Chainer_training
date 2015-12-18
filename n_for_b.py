@@ -91,35 +91,40 @@ class Mychain(object):
                 # initialize gradient
                 optimizer.zero_grads()
                 # forward and calculate error
-                loss, acc = self.forward(x_batch, y_batch)
+                if self.is_clastering:
+                    loss, acc = self.forward(x_batch, y_batch)
+                else:
+                    loss = self.forward(x_batch, y_batch)
                 # calc grad by back prop
                 loss.backward()
                 optimizer.update()
 
                 train_loss.append(loss.data)
-                train_acc.append(acc.data)
                 sum_loss     += float(cuda.to_cpu(loss.data)) * batchsize
-                sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
+                if self.is_clastering:
+                    train_acc.append(acc.data)
+                    sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
 
             # display accuracy for training
-            print('train mean loss={}, accuracy={}'.format(sum_loss / train_data_size, sum_accuracy / train_data_size))
+            if self.is_clastering:
+                print('train mean loss={}, accuracy={}'.format(sum_loss / train_data_size, sum_accuracy / train_data_size))
 
-            # evaluation
-            sum_accuracy = 0
-            sum_loss     = 0
-            for i in xrange(0, test_data_size, batchsize):
-                x_batch = x_test[i:i+batchsize]
-                y_batch = y_test[i:i+batchsize]
+                # evaluation
+                sum_accuracy = 0
+                sum_loss     = 0
+                for i in xrange(0, test_data_size, batchsize):
+                    x_batch = x_test[i:i+batchsize]
+                    y_batch = y_test[i:i+batchsize]
 
-                # calc accuracy for test
-                loss, acc = self.forward(x_batch, y_batch, train=False)
-                test_loss.append(loss.data)
-                test_acc.append(acc.data)
-                sum_loss     += float(cuda.to_cpu(loss.data)) * batchsize
-                sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
+                    # calc accuracy for test
+                    loss, acc = self.forward(x_batch, y_batch, train=False)
+                    test_loss.append(loss.data)
+                    test_acc.append(acc.data)
+                    sum_loss     += float(cuda.to_cpu(loss.data)) * batchsize
+                    sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
 
-            # display accuracy for test
-            print('test  mean loss={}, accuracy={}'.format(sum_loss / test_data_size, sum_accuracy / test_data_size))
+                # display accuracy for test
+                print('test  mean loss={}, accuracy={}'.format(sum_loss / test_data_size, sum_accuracy / test_data_size))
         if self.plot_enable:
             self.disp_plot(train_acc, test_acc)
 
@@ -182,13 +187,14 @@ class Mychain(object):
             plt.savefig('./Image/final_test.png')
         plt.show()
 
-    def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True, final_test_enable=True):
+    def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True, final_test_enable=True, is_clastering=True):
         # setup chainer
         self.set_sample()
         self.set_model()
         self.set_optimizer()
         self.plot_enable = plot_enable
         self.save_as_png = save_as_png
+        self.is_clastering = is_clastering
         if save_as_png and not os.path.exists('./Image'):
             os.mkdir('./Image')
 

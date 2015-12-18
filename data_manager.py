@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #future replaced data_manager
-
 class data_manager(object):
     def get_xy(self, data_dict):
         for name, data in data_dict.items():

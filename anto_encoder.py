@@ -26,13 +26,16 @@ class Autoencoder(Mychain):
         if answer:
             return [np.argmax(data) for data in y.data]
         else:
-            return F.mean_squared_error(y, t), F.accuracy(y, t)
+            return F.mean_squared_error(y, t)#, F.accuracy(y, t)
 
     def set_sample(self):
         print('fetch data')
         self.sample = dm_for_ae('./numbers', 1000, 'overlap', True).make_sample()
         self.input_matrix_size = self.sample.input_matrix_size
         self.output_matrix_size = self.sample.output_matrix_size
+
+    def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True, final_test_enable=True, is_clastering=False):
+        Mychain.__init__(self, pickle_enable, plot_enable, save_as_png, final_test_enable, is_clastering)
 
 class dm_for_ae(data_manager):
     def process_sample_backend_ae(func):
