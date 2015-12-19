@@ -2,8 +2,9 @@
 //  raspGPIO: Raspberry Pi GPIO module
 //      copy from http://www.myu.ac.jp/~xkozima/lab/raspTutorial3.html
 #include "raspGPIO.h"
+#include <stdio.h>
 
-#define PERI_BASE     0x20000000
+#define PERI_BASE     0x3F000000 //for rasberry pi 2
 #define GPIO_BASE     (PERI_BASE + 0x200000)
 #define BLOCK_SIZE    4096
 
@@ -83,6 +84,28 @@ void gpio_configure_pull (int pin, int pullmode)
 
     Gpio[37] = 0;
     Gpio[38] = 0;
+}
+
+int main(int argc, char *argv[])
+{
+    int clocking_pin = 5;
+    gpio_init();
+    if(argc == 1){
+        printf("End clocking\n");
+        gpio_configure(5, GPIO_INPUT);  
+    }
+    else{
+        gpio_init();
+        if(argv[1][0] == '5'){
+             printf("Start clocking\n");
+             gpio_configure_pull(clocking_pin, GPIO_PULLDOWN);
+             gpio_configure(clocking_pin, GPIO_ALT0);
+        }else if(argv[1][0] == '4'){
+             printf("Start clocking\n");
+             gpio_configure(clocking_pin, GPIO_ALT0);
+        }
+    }
+    return 0;
 }
 
 //
