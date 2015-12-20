@@ -24,7 +24,7 @@ class Autoencoder(Mychain):
         h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
         y  = self.model.l3(h2)
         if answer:
-            return [np.argmax(data) for data in y.data]
+            return y.data
         else:
             return F.mean_squared_error(y, t)#, F.accuracy(y, t)
 
@@ -36,6 +36,11 @@ class Autoencoder(Mychain):
 
     def get_final_test_title(self, answer, recog):
         return ""
+
+    def final_test_plot(self, x, y):
+        import matplotlib.pyplot as plt
+        plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
+        plt.plot(np.arange(0, self.input_matrix_size, 1), y[0])
 
     def __init__(self, pickle_enable=False,
                  plot_enable=True,

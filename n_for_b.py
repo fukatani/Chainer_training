@@ -180,13 +180,14 @@ class Mychain(object):
         if y_batch is None:
             y_batch = np.zeros(len(x_batch))
         for i in range(self.get_sample_size(x_batch)):
+            #single test
             x = x_batch[i:i+1]
             y = y_batch[i:i+1]
             recog_answer = self.forward(x, y, train=False, answer=True)[0]
             answer = y[0]
 
             plt.subplot(3, 3, i+1)
-            plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
+            self.final_test_plot(x, y)
             plt.title(self.get_final_test_title(answer, recog_answer), size=8)
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
@@ -196,6 +197,9 @@ class Mychain(object):
 
     def get_final_test_title(self, answer, recog_answer):
         return "ans=%d, recog=%d"%(answer, recog_answer)
+
+    def final_test_plot(self, x, y):
+        plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
 
     def __init__(self,
                  pickle_enable=False,
