@@ -80,12 +80,16 @@ class data_manager(object):
         from functools import wraps
         @wraps(func)
         def wrapper(*args, **kwargs):
-            sample = func(*args, **kwargs)
-            sample.data  -= np.min(sample.data)
-            sample.data  /= np.max(sample.data)
-            sample.data   = sample.data.astype(np.float32)
-            sample.target = sample.target.astype(np.int32)
-            return sample
+            train, test = func(*args, **kwargs)
+            train.data  -= np.min(train.data)
+            train.data  /= np.max(train.data)
+            train.data   = train.data.astype(np.float32)
+            train.target = train.target.astype(np.int32)
+            test.data  -= np.min(test.data)
+            test.data  /= np.max(test.data)
+            test.data   = test.data.astype(np.float32)
+            test.target = test.target.astype(np.int32)
+            return train, test
         return wrapper
 
     @process_sample_backend
@@ -97,25 +101,35 @@ class data_manager(object):
         sample_size = len(data_dict.keys())
 
         #initialize
-        data = np.zeros([sample_size, self.data_size], dtype=np.float32)
-        target = np.zeros(sample_size)
+        sample_data = np.zeros([sample_size, self.data_size], dtype=np.float32)
+        sample_target = np.zeros(sample_size)
 
         sample_index = 0
         for name, array in data_dict.items():
-            target[sample_index] = self.get_target(name)
-            data[sample_index] = array
+            sample_data[sample_index] = array
+            sample_target[sample_index] = self.get_target(name)
             sample_index += 1
-        return Abstract_sample(data, target, len(self.group_suffixes))
+
+        perm = np.random.permutation(sample_size)
+        train_data = sample_data[perm[0:self.train_size]]
+        train_target = sample_target[perm[0:self.train_size]]
+        test_data = sample_data[perm[self.train_size:]]
+        test_target = sample_target[perm[self.train_size:]]
+
+        return (Abstract_sample(train_data, train_target, len(self.group_suffixes)),
+                Abstract_sample(test_data, test_target, len(self.group_suffixes)))
 
     def __init__(self,
                  directory,
                  data_size=10000,
+                 train_size=100,
                  split_mode='',
                  attenate_flag=False,
                  save_as_png=True,
                  slide=4):
         self.directory = directory
-        self.data_size= data_size
+        self.data_size = data_size
+        self.train_size = train_size
         self.offset_width = self.data_size / slide
         self.attenate_flag = attenate_flag
         self.save_as_png = save_as_png
@@ -135,6 +149,6 @@ class Abstract_sample(object):
         self.sample_size = target.size / target[0].size
 
 if __name__ == '__main__':
-    dm = data_manager('./numbers', 1000, 'overlap', True, save_as_png=False)
+    dm = data_manager('./numbers', 1000, 100,'overlap', True, save_as_png=False)
     #dm.plot()
     dm.make_sample()

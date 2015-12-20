@@ -57,16 +57,13 @@ class Mychain(object):
             print('time elapsed ' + str(end-start))
         return wrapper
 
-    @time_record
-    def learning(self, train_data_size, batchsize, n_epoch):
-        sample = self.sample
-        optimizer = self.optimizer
+    def prepare_sample(self, train_size):
+        return self.train_sample.data, self.train_sample.target, self.test_sample.data, self.test_sample.target
 
-        perm = np.random.permutation(len(sample.data))
-        x_train = sample.data[perm[0:train_data_size]]
-        y_train = sample.target[perm[0:train_data_size]]
-        x_test = sample.data[perm[train_data_size:-1]]
-        y_test = sample.target[perm[train_data_size:-1]]
+    @time_record
+    def learning(self, train_size, batchsize, n_epoch):
+        optimizer = self.optimizer
+        x_train, y_train, x_test, y_test = self.prepare_sample(train_size)
         test_data_size = self.get_sample_size(x_test)
 
         train_loss = []
@@ -79,11 +76,11 @@ class Mychain(object):
             print 'epoch', epoch
 
             # training
-            perm = np.random.permutation(train_data_size)
+            perm = np.random.permutation(train_size)
             sum_accuracy = 0
             sum_loss = 0
 
-            for i in xrange(0, train_data_size, batchsize):
+            for i in xrange(0, train_size, batchsize):
                 x_batch = x_train[perm[i:i+batchsize]]
                 y_batch = y_train[perm[i:i+batchsize]]
 
@@ -104,9 +101,9 @@ class Mychain(object):
 
             # display accuracy for training
             if not self.is_clastering:
-                print('train mean loss={}'.format(sum_loss / train_data_size))
+                print('train mean loss={}'.format(sum_loss / train_size))
             else:
-                print('train mean loss={}, accuracy={}'.format(sum_loss / train_data_size, sum_accuracy / train_data_size))
+                print('train mean loss={}, accuracy={}'.format(sum_loss / train_size, sum_accuracy / train_size))
                 # evaluation
             sum_accuracy = 0
             sum_loss     = 0
@@ -149,9 +146,10 @@ class Mychain(object):
 
     def set_sample(self):
         print('fetch data')
-        self.sample = data_manager.data_manager('./numbers', 1000, 'overlap', True).make_sample()
-        self.input_matrix_size = self.sample.input_matrix_size
-        self.output_matrix_size = self.sample.output_matrix_size
+        self.train_sample, self.test_sample = data_manager.data_manager(
+            './numbers', 1000, self.train_size,'overlap', True).make_sample()
+        self.input_matrix_size = self.train_sample.input_matrix_size
+        self.output_matrix_size = self.train_sample.output_matrix_size
 
     def disp_w(self):
         plt.close('all')
@@ -164,9 +162,9 @@ class Mychain(object):
         plt.show()
 
     def extract_test_sample(self, test_data_size=9):
-        perm = np.random.permutation(self.sample.sample_size)
-        x_batch = self.sample.data[perm[0:test_data_size]]
-        y_batch = self.sample.target[perm[0:test_data_size]]
+        perm = np.random.permutation(self.test_sample.sample_size)
+        x_batch = self.test_sample.data[perm[0:test_data_size]]
+        y_batch = self.test_sample.target[perm[0:test_data_size]]
         return x_batch, y_batch
 
     def get_sample_size(self, x):
@@ -206,7 +204,7 @@ class Mychain(object):
                  save_as_png=True,
                  final_test_enable=True,
                  is_clastering=True,
-                 train_data_size=100,
+                 train_size=100,
                  batch_size=10,
                  n_epoch=10,
                  n_units=200):
@@ -216,6 +214,7 @@ class Mychain(object):
         self.save_as_png = save_as_png
         self.is_clastering = is_clastering
         self.n_units = n_units
+        self.train_size = train_size
         if save_as_png and not os.path.exists('./Image'):
             os.mkdir('./Image')
 
@@ -224,7 +223,7 @@ class Mychain(object):
         self.set_model()
         self.set_optimizer()
 
-        self.learning(train_data_size=100, batchsize=10, n_epoch=n_epoch)
+        self.learning(train_size=100, batchsize=10, n_epoch=n_epoch)
         #self.disp_w()
         if final_test_enable:
             x_batch, y_batch = self.extract_test_sample()
