@@ -30,7 +30,7 @@ class Autoencoder(Mychain):
 
     def set_sample(self):
         print('fetch data')
-        self.sample = dm_for_ae('./numbers', 1000, 'overlap', True).make_sample()
+        self.sample = dm_for_ae('./numbers', 1000, 'overlap', True, slide=4).make_sample()
         self.input_matrix_size = self.sample.input_matrix_size
         self.output_matrix_size = self.sample.output_matrix_size
 
@@ -40,7 +40,7 @@ class Autoencoder(Mychain):
     def final_test_plot(self, x, y):
         import matplotlib.pyplot as plt
         plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
-        plt.plot(np.arange(0, self.input_matrix_size, 1), y[0])
+        plt.plot(np.arange(0, self.input_matrix_size, 1), y)
 
     def __init__(self, pickle_enable=False,
                  plot_enable=True,
@@ -49,7 +49,8 @@ class Autoencoder(Mychain):
                  is_clastering=False,
                  train_data_size=100,
                  batch_size=10,
-                 n_epoch=10):
+                 n_epoch=10,
+                 n_units=200):
         Mychain.__init__(self,
                          pickle_enable,
                          plot_enable,
@@ -58,7 +59,8 @@ class Autoencoder(Mychain):
                          is_clastering,
                          train_data_size,
                          batch_size,
-                         n_epoch)
+                         n_epoch,
+                         n_units)
 
 class dm_for_ae(data_manager):
     def process_sample_backend_ae(func):
@@ -92,5 +94,47 @@ class dm_for_ae(data_manager):
             sample_index += 1
         return Abstract_sample(data, target, target[0].size)
 
+    def process_sample_backend_ae2(func):
+        import datetime
+        from functools import wraps
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            train, test = func(*args, **kwargs)
+            train.data  -= np.min(train.data)
+            train.data  /= np.max(train.data)
+            train.data   = train.data.astype(np.float32)
+            train.target = np.array(train.data)
+            test.data  -= np.min(test.data)
+            test.data  /= np.max(test.data)
+            test.data   = test.data.astype(np.float32)
+            test.target = np.array(test.data)
+            return train, test
+        return wrapper
+
+    @process_sample_backend_ae2
+    def make_sample2(self):
+        """ [Functions]
+            Make sample for analysis by chainer.
+        """
+        data_dict = self.get_data()
+        sample_size = len(data_dict.keys())
+        train_size = 50
+
+        #initialize
+        train_data = np.zeros([sample_size, train_size], dtype=np.float32)
+        test_data = np.zeros([sample_size, self.data_size - train_size], dtype=np.float32)
+        train_target = np.zeros([sample_size, train_size], dtype=np.float32)
+        test_target = np.zeros([sample_size, self.data_size - train_size], dtype=np.float32)
+
+        sample_index = 0
+        for name, array in data_dict.items():
+            if sample_index < train_size:
+                train_data[sample_index] = array
+            else:
+                test_data[sample_index-train_size] = array
+            sample_index += 1
+        return (Abstract_sample(train_data, train_target, train_target[0].size),
+                Abstract_sample(test_data, test_target, test_target[0].size))
+
 if __name__ == '__main__':
-    Autoencoder(n_epoch=20)
+    Autoencoder(train_data_size=100, n_epoch=20, n_units=200)

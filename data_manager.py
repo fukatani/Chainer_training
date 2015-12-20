@@ -107,10 +107,16 @@ class data_manager(object):
             sample_index += 1
         return Abstract_sample(data, target, len(self.group_suffixes))
 
-    def __init__(self, directory, data_size=10000, split_mode='', attenate_flag=False, save_as_png=True):
+    def __init__(self,
+                 directory,
+                 data_size=10000,
+                 split_mode='',
+                 attenate_flag=False,
+                 save_as_png=True,
+                 slide=4):
         self.directory = directory
         self.data_size= data_size
-        self.offset_width = self.data_size / 4
+        self.offset_width = self.data_size / slide
         self.attenate_flag = attenate_flag
         self.save_as_png = save_as_png
 

@@ -37,10 +37,9 @@ class Mychain(object):
                 print('load from pickled data.')
                 self.model = pickle.load(f)
         except (IOError, EOFError):
-            n_units   = 200
-            self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, n_units),
-                            l2=F.Linear(n_units, n_units),
-                            l3=F.Linear(n_units, self.output_matrix_size))
+            self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, self.n_units),
+                            l2=F.Linear(self.n_units, self.n_units),
+                            l3=F.Linear(self.n_units, self.output_matrix_size))
 
     def set_optimizer(self):
         self.optimizer = optimizers.AdaDelta()
@@ -187,7 +186,7 @@ class Mychain(object):
             answer = y[0]
 
             plt.subplot(3, 3, i+1)
-            self.final_test_plot(x, y)
+            self.final_test_plot(x, recog_answer)
             plt.title(self.get_final_test_title(answer, recog_answer), size=8)
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
@@ -209,18 +208,21 @@ class Mychain(object):
                  is_clastering=True,
                  train_data_size=100,
                  batch_size=10,
-                 n_epoch=10):
-        # setup chainer
-        self.set_sample()
-        self.set_model()
-        self.set_optimizer()
+                 n_epoch=10,
+                 n_units=200):
 
         #configuration
         self.plot_enable = plot_enable
         self.save_as_png = save_as_png
         self.is_clastering = is_clastering
+        self.n_units = n_units
         if save_as_png and not os.path.exists('./Image'):
             os.mkdir('./Image')
+
+        # setup chainer
+        self.set_sample()
+        self.set_model()
+        self.set_optimizer()
 
         self.learning(train_data_size=100, batchsize=10, n_epoch=n_epoch)
         #self.disp_w()
