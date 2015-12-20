@@ -37,8 +37,23 @@ class Autoencoder(Mychain):
     def get_final_test_title(self, answer, recog):
         return ""
 
-    def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True, final_test_enable=True, is_clastering=False):
-        Mychain.__init__(self, pickle_enable, plot_enable, save_as_png, final_test_enable, is_clastering)
+    def __init__(self, pickle_enable=False,
+                 plot_enable=True,
+                 save_as_png=True,
+                 final_test_enable=True,
+                 is_clastering=False,
+                 train_data_size=100,
+                 batch_size=10,
+                 n_epoch=10):
+        Mychain.__init__(self,
+                         pickle_enable,
+                         plot_enable,
+                         save_as_png,
+                         final_test_enable,
+                         is_clastering,
+                         train_data_size,
+                         batch_size,
+                         n_epoch)
 
 class dm_for_ae(data_manager):
     def process_sample_backend_ae(func):
@@ -73,4 +88,4 @@ class dm_for_ae(data_manager):
         return Abstract_sample(data, target, target[0].size)
 
 if __name__ == '__main__':
-    Autoencoder()
+    Autoencoder(n_epoch=20)
