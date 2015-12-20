@@ -126,6 +126,7 @@ class Abstract_sample(object):
         self.input_matrix_size = data[0].size
         self.target = target
         self.output_matrix_size = output_matrix_size
+        self.sample_size = target.size / target[0].size
 
 if __name__ == '__main__':
     dm = data_manager('./numbers', 1000, 'overlap', True, save_as_png=False)

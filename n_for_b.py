@@ -106,9 +106,10 @@ class Mychain(object):
                     sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
 
             # display accuracy for training
-            if self.is_clastering:
+            if not self.is_clastering:
+                print('train mean loss={}'.format(sum_loss / train_data_size))
+            else:
                 print('train mean loss={}, accuracy={}'.format(sum_loss / train_data_size, sum_accuracy / train_data_size))
-
                 # evaluation
                 sum_accuracy = 0
                 sum_loss     = 0
@@ -160,19 +161,18 @@ class Mychain(object):
         plt.show()
 
     def extract_test_sample(self, test_data_size=9):
-        perm = np.random.permutation(self.sample.target.size)
+        perm = np.random.permutation(self.sample.sample_size)
         x_batch = self.sample.data[perm[0:test_data_size]]
         y_batch = self.sample.target[perm[0:test_data_size]]
         return x_batch, y_batch
 
     def final_test(self, x_batch, y_batch=None):
-        #TODO
         plt.close('all')
         plt.style.use('fivethirtyeight')
         #size = 28
         if y_batch is None:
             y_batch = np.zeros(len(x_batch))
-        for i in range(y_batch.size):
+        for i in range(x_batch.size / x_batch[0].size):
             x = x_batch[i:i+1]
             y = y_batch[i:i+1]
             recog_answer = self.forward(x, y, train=False, answer=True)[0]
@@ -180,12 +180,15 @@ class Mychain(object):
 
             plt.subplot(3, 3, i+1)
             plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
-            plt.title("ans=%d, recog=%d"%(answer, recog_answer), size=8)
+            plt.title(self.get_final_test_title(answer, recog_answer), size=8)
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
         if self.save_as_png:
             plt.savefig('./Image/final_test.png')
         plt.show()
+
+    def get_final_test_title(self, answer, recog_answer):
+        return "ans=%d, recog=%d"%(answer, recog_answer)
 
     def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True, final_test_enable=True, is_clastering=True):
         # setup chainer

@@ -34,6 +34,9 @@ class Autoencoder(Mychain):
         self.input_matrix_size = self.sample.input_matrix_size
         self.output_matrix_size = self.sample.output_matrix_size
 
+    def get_final_test_title(self, answer, recog):
+        return ""
+
     def __init__(self, pickle_enable=False, plot_enable=True, save_as_png=True, final_test_enable=True, is_clastering=False):
         Mychain.__init__(self, pickle_enable, plot_enable, save_as_png, final_test_enable, is_clastering)
 
