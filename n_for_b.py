@@ -223,7 +223,7 @@ class Mychain(object):
         self.set_model()
         self.set_optimizer()
 
-        self.learning(train_size=100, batchsize=10, n_epoch=n_epoch)
+        self.learning(train_size=train_size, batchsize=10, n_epoch=n_epoch)
         #self.disp_w()
         if final_test_enable:
             x_batch, y_batch = self.extract_test_sample()
