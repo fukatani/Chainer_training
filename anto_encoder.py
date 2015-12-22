@@ -21,10 +21,10 @@ class Autoencoder(Mychain):
     def forward(self, x_data, y_data, train=True, answer=False):
         x, t = Variable(x_data), Variable(y_data)
         h1 = F.dropout(F.relu(self.model.l1(x)),  train=train)
-        h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
+        h2 = F.dropout(self.model.l2(h1), train=train)
         y  = self.model.l3(h2)
         if answer:
-            return y.data#, F.mean_squared_error(y, t)
+            return y.data, F.mean_squared_error(y, t)
         else:
             return F.mean_squared_error(y, t)#, F.accuracy(y, t)
 
@@ -34,8 +34,8 @@ class Autoencoder(Mychain):
         self.input_matrix_size = self.train_sample.input_matrix_size
         self.output_matrix_size = self.train_sample.output_matrix_size
 
-    def get_final_test_title(self, answer, recog):
-        return ""
+    def get_final_test_title(self, answer, recog, loss):
+        return str(loss.data)
 
     def final_test_plot(self, x, y):
         import matplotlib.pyplot as plt
@@ -96,7 +96,7 @@ class dm_for_ae(data_manager):
         test_target = np.zeros([sample_size - self.train_size, self.data_size], dtype=np.float32)
 
         sample_index = 0
-        self.randomization = True
+        self.randomization = False
         self.order = False
 
         if self.randomization:
@@ -123,4 +123,4 @@ class dm_for_ae(data_manager):
                 Abstract_sample(test_data, test_target, test_target[0].size))
 
 if __name__ == '__main__':
-    Autoencoder(train_size=98, n_epoch=10, n_units=100)
+    Autoencoder(train_size=98, n_epoch=40, n_units=500)

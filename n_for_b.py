@@ -27,7 +27,7 @@ class Mychain(object):
         h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
         y  = self.model.l3(h2)
         if answer:
-            return [np.argmax(data) for data in y.data]
+            return [np.argmax(data) for data in y.data], F.softmax_cross_entropy(y, t)
         else:
             return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 
@@ -180,19 +180,19 @@ class Mychain(object):
             #single test
             x = x_batch[i:i+1]
             y = y_batch[i:i+1]
-            recog_answer = self.forward(x, y, train=False, answer=True)[0]
+            recog_answer, loss = self.forward(x, y, train=False, answer=True)
             answer = y[0]
 
             plt.subplot(3, 3, i+1)
-            self.final_test_plot(x, recog_answer)
-            plt.title(self.get_final_test_title(answer, recog_answer), size=8)
+            self.final_test_plot(x, recog_answer[0])
+            plt.title(self.get_final_test_title(answer, recog_answer[0], loss), size=8)
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
         if self.save_as_png:
             plt.savefig('./Image/final_test.png')
         plt.show()
 
-    def get_final_test_title(self, answer, recog_answer):
+    def get_final_test_title(self, answer, recog_answer, loss=None):
         return "ans=%d, recog=%d"%(answer, recog_answer)
 
     def final_test_plot(self, x, y):
