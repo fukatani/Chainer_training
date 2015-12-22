@@ -24,7 +24,7 @@ class Autoencoder(Mychain):
         h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
         y  = self.model.l3(h2)
         if answer:
-            return y.data
+            return y.data#, F.mean_squared_error(y, t)
         else:
             return F.mean_squared_error(y, t)#, F.accuracy(y, t)
 
@@ -87,23 +87,40 @@ class dm_for_ae(data_manager):
         """
         data_dict = self.get_data()
         sample_size = len(data_dict.keys())
-        train_size = 50
+        #train_size = 50
 
         #initialize
-        train_data = np.zeros([train_size, self.data_size], dtype=np.float32)
-        test_data = np.zeros([sample_size - train_size, self.data_size], dtype=np.float32)
+        train_data = np.zeros([self.train_size, self.data_size], dtype=np.float32)
+        test_data = np.zeros([sample_size - self.train_size, self.data_size], dtype=np.float32)
         train_target = np.zeros([sample_size, self.data_size], dtype=np.float32)
-        test_target = np.zeros([sample_size - train_size, self.data_size], dtype=np.float32)
+        test_target = np.zeros([sample_size - self.train_size, self.data_size], dtype=np.float32)
 
         sample_index = 0
-        for name, array in data_dict.items():
-            if sample_index < train_size:
-                train_data[sample_index] = array
-            else:
-                test_data[sample_index-train_size] = array
-            sample_index += 1
+        self.randomization = True
+        self.order = False
+
+        if self.randomization:
+            sample_data = np.array(data_dict.values())
+            perm = np.random.permutation(sample_size)
+            train_data = sample_data[perm[0:self.train_size]]
+            test_data = sample_data[perm[self.train_size:]]
+        elif self.order:
+            for name, array in data_dict.items():
+                if sample_index < self.train_size:
+                    train_data[sample_index] = array
+                else:
+                    test_data[sample_index-self.train_size] = array
+                sample_index += 1
+        else:
+            for name, array in data_dict.items():
+                if name[0:2] == 'fu' and train_data.shape[0] > sample_index:
+                    train_data[sample_index] = array
+                elif name[0:2] == 'in' and train_data.shape[0] > sample_index:
+                    test_data[sample_index-self.train_size] = array
+                sample_index += 1
+
         return (Abstract_sample(train_data, train_target, train_target[0].size),
                 Abstract_sample(test_data, test_target, test_target[0].size))
 
 if __name__ == '__main__':
-    Autoencoder(train_size=40, n_epoch=20, n_units=200)
+    Autoencoder(train_size=98, n_epoch=10, n_units=100)
