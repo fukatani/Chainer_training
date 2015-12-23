@@ -30,7 +30,8 @@ class Autoencoder(Mychain):
 
     def set_sample(self):
         print('fetch data')
-        self.train_sample, self.test_sample = dm_for_ae('./numbers', 1000, self.train_size, 'overlap', True, slide=4).make_sample()
+        self.train_sample, self.test_sample = dm_for_ae('./numbers'
+            , 1000, self.train_size, 'overlap', True, slide=4, keywords=self.keywords).make_sample()
         self.input_matrix_size = self.train_sample.input_matrix_size
         self.output_matrix_size = self.train_sample.output_matrix_size
 
@@ -50,7 +51,9 @@ class Autoencoder(Mychain):
                  train_size=100,
                  batch_size=10,
                  n_epoch=10,
-                 n_units=200):
+                 n_units=200,
+                 **keywords):
+        self.keywords = keywords
         Mychain.__init__(self,
                          pickle_enable,
                          plot_enable,
@@ -96,9 +99,6 @@ class dm_for_ae(data_manager):
         test_target = np.zeros([sample_size - self.train_size, self.data_size], dtype=np.float32)
 
         sample_index = 0
-        self.randomization = False
-        self.order = False
-
         if self.randomization:
             sample_data = np.array(data_dict.values())
             perm = np.random.permutation(sample_size)
@@ -110,6 +110,20 @@ class dm_for_ae(data_manager):
                     train_data[sample_index] = array
                 else:
                     test_data[sample_index-self.train_size] = array
+                sample_index += 1
+        elif self.order:
+            for name, array in data_dict.items():
+                if sample_index < self.train_size:
+                    train_data[sample_index] = array
+                else:
+                    test_data[sample_index-self.train_size] = array
+                sample_index += 1
+        elif self.all_same:
+            for name, array in data_dict.items():
+                if sample_index < self.train_size:
+                    train_data[sample_index] = data_dict.values()[sample_index % self.sample_kinds]
+                else:
+                    test_data[sample_index-self.train_size] = data_dict.values()[sample_index % self.sample_kinds]
                 sample_index += 1
         else:
             for name, array in data_dict.items():
@@ -123,4 +137,4 @@ class dm_for_ae(data_manager):
                 Abstract_sample(test_data, test_target, test_target[0].size))
 
 if __name__ == '__main__':
-    Autoencoder(train_size=98, n_epoch=40, n_units=500)
+    Autoencoder(train_size=98, n_epoch=10, n_units=300, same_sample=1)

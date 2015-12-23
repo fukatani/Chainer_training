@@ -126,19 +126,34 @@ class data_manager(object):
                  split_mode='',
                  attenate_flag=False,
                  save_as_png=True,
-                 slide=4):
+                 slide=4,
+                 keywords=None):
         self.directory = directory
         self.data_size = data_size
         self.train_size = train_size
         self.offset_width = self.data_size / slide
         self.attenate_flag = attenate_flag
         self.save_as_png = save_as_png
+        self.keywords = keywords
 
         self.a_coefs = (-100, 100)
         self.group_suffixes = ('fu', 'in')
         if save_as_png and not os.path.exists('./Image'):
             os.mkdir('./Image')
         self.read_all_data()
+        self.analyse_keywords()
+
+    def analyse_keywords(self):
+        if self.keywords:
+            self.randomization = 'random_sample' in self.keywords.keys()
+            self.order = 'order_sample' in self.keywords.keys()
+            self.all_same = 'same_sample' in self.keywords.keys()
+            if self.all_same:
+                self.sample_kinds = self.keywords['same_sample']
+        else:
+            self.randomization = False
+            self.order = False
+            self.all_same = False
 
 class Abstract_sample(object):
     def __init__(self, data, target, output_matrix_size):

@@ -207,7 +207,8 @@ class Mychain(object):
                  train_size=100,
                  batch_size=10,
                  n_epoch=10,
-                 n_units=200):
+                 n_units=200,
+                 **keywords):
 
         #configuration
         self.plot_enable = plot_enable
@@ -217,6 +218,8 @@ class Mychain(object):
         self.train_size = train_size
         if save_as_png and not os.path.exists('./Image'):
             os.mkdir('./Image')
+        if keywords:
+            self.keywords = keywords
 
         # setup chainer
         self.set_sample()
