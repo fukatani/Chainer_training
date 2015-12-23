@@ -79,8 +79,8 @@ class data_manager(object):
         import datetime
         from functools import wraps
         @wraps(func)
-        def wrapper(*args, **kwargs):
-            train, test = func(*args, **kwargs)
+        def wrapper(self, *args, **kwargs):
+            train, test = func(self, *args, **kwargs)
             train.data  -= np.min(train.data)
             train.data  /= np.max(train.data)
             train.data   = train.data.astype(np.float32)
@@ -150,6 +150,9 @@ class data_manager(object):
             self.all_same = 'same_sample' in self.keywords.keys()
             if self.all_same:
                 self.sample_kinds = self.keywords['same_sample']
+            self.denoised_enable = 'denoised_enable' in self.keywords.keys()
+            if self.denoised_enable:
+                self.noise_coef = self.keywords['same_sample']
         else:
             self.randomization = False
             self.order = False
