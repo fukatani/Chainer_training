@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        module1
+# Name:        Mychain
 # Purpose:
 #
 # Author:      rf
@@ -23,19 +23,22 @@ import os
 class Mychain(object):
     def forward(self, x_data, y_data, train=True, answer=False):
         x, t = Variable(x_data), Variable(y_data)
-        h1 = F.dropout(F.relu(self.model.l1(x)),  train=train)
+        h1 = F.dropout(F.relu(self.model.l1(x)), train=train)
         h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
-        y  = self.model.l3(h2)
+        y = self.model.l3(h2)
         if answer:
             return [np.argmax(data) for data in y.data], F.softmax_cross_entropy(y, t)
         else:
             return F.softmax_cross_entropy(y, t), F.accuracy(y, t)
 
-    def set_model(self):
-        try:
-            with open("self.model", "r") as f:
+    def load_from_pickle(self):
+        with open("self.model", "r") as f:
                 print('load from pickled data.')
                 self.model = pickle.load(f)
+
+    def set_model(self):
+        try:
+            self.load_from_pickle()
         except (IOError, EOFError):
             self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, self.n_units),
                             l2=F.Linear(self.n_units, self.n_units),
@@ -64,16 +67,16 @@ class Mychain(object):
     def learning(self, train_size, batchsize, n_epoch):
         optimizer = self.optimizer
         x_train, y_train, x_test, y_test = self.prepare_sample(train_size)
-        test_data_size = self.get_sample_size(x_test)
+        test_data_size = x_test.shape[0]
 
         train_loss = []
-        train_acc  = []
+        train_acc = []
         test_loss = []
-        test_acc  = []
+        test_acc = []
 
         # Learning loop
         for epoch in xrange(1, n_epoch+1):
-            print 'epoch', epoch
+            print('epoch', epoch)
 
             # training
             perm = np.random.permutation(train_size)
@@ -132,10 +135,10 @@ class Mychain(object):
     def disp_plot(self, train_acc, test_acc):
         # display accuracy for test as graph
         plt.style.use('ggplot')
-        plt.figure(figsize=(8,6))
+        plt.figure(figsize=(8, 6))
         plt.plot(range(len(train_acc)), train_acc)
         plt.plot(range(len(test_acc)), test_acc)
-        plt.legend(["train_acc","test_acc"],loc=4)
+        plt.legend(["train_acc","test_acc"], loc=4)
         plt.title("Accuracy of inoue/fukatani recognition.")
         plt.plot()
 
@@ -147,7 +150,7 @@ class Mychain(object):
     def set_sample(self):
         print('fetch data')
         self.train_sample, self.test_sample = data_manager.data_manager(
-            './numbers', 1000, self.train_size,'overlap', True).make_sample()
+            './numbers', 1000, self.train_size, 'overlap', True).make_sample()
         self.input_matrix_size = self.train_sample.input_matrix_size
         self.output_matrix_size = self.train_sample.output_matrix_size
 
@@ -167,16 +170,13 @@ class Mychain(object):
         y_batch = self.test_sample.target[perm[0:test_data_size]]
         return x_batch, y_batch
 
-    def get_sample_size(self, x):
-        return x.size / x[0].size
-
     def final_test(self, x_batch, y_batch=None):
         plt.close('all')
         plt.style.use('fivethirtyeight')
         #size = 28
         if y_batch is None:
             y_batch = np.zeros(len(x_batch))
-        for i in range(self.get_sample_size(x_batch)):
+        for i in range(x_batch.shape[0]):
             #single test
             x = x_batch[i:i+1]
             y = y_batch[i:i+1]
