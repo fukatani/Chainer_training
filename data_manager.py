@@ -152,11 +152,13 @@ class data_manager(object):
                 self.sample_kinds = self.keywords['same_sample']
             self.denoised_enable = 'denoised_enable' in self.keywords.keys()
             if self.denoised_enable:
-                self.noise_coef = self.keywords['same_sample']
+                self.noise_coef = self.keywords['denoised_enable']
+            self.offset_cancel = 'offset_cancel' in self.keywords.keys()
         else:
             self.randomization = False
             self.order = False
             self.all_same = False
+            self.denoised_enable = False
 
 class Abstract_sample(object):
     def __init__(self, data, target, output_matrix_size):

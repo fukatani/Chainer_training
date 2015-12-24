@@ -66,6 +66,10 @@ class Autoencoder(Mychain):
                          n_units)
 
 class dm_for_ae(data_manager):
+
+    def offset_minus(self, data):
+        return np.array([element - np.average(element) for element in data])
+
     def process_sample_backend_ae(func):
         import datetime
         from functools import wraps
@@ -83,6 +87,11 @@ class dm_for_ae(data_manager):
             test.data  /= np.max(test.data)
             test.data   = test.data.astype(np.float32)
             test.target = np.array(test.data)
+            if self.offset_cancel:
+                train.data = self.offset_minus(train.data)
+                train.target = self.offset_minus(train.target)
+                test.data = self.offset_minus(test.data)
+                test.target = self.offset_minus(test.target)
             return train, test
         return wrapper
 
@@ -114,13 +123,6 @@ class dm_for_ae(data_manager):
                 else:
                     test_data[sample_index-self.train_size] = array
                 sample_index += 1
-        elif self.order:
-            for name, array in data_dict.items():
-                if sample_index < self.train_size:
-                    train_data[sample_index] = array
-                else:
-                    test_data[sample_index-self.train_size] = array
-                sample_index += 1
         elif self.all_same:
             for name, array in data_dict.items():
                 if sample_index < self.train_size:
@@ -140,4 +142,4 @@ class dm_for_ae(data_manager):
                 Abstract_sample(test_data, test_target, test_target[0].size))
 
 if __name__ == '__main__':
-    Autoencoder(train_size=98, n_epoch=10, n_units=300, same_sample=1)
+    Autoencoder(train_size=98, n_epoch=10, n_units=300, same_sample=1, offset_cancel=True)
