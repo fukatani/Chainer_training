@@ -150,7 +150,7 @@ class Mychain(object):
     def set_sample(self):
         print('fetch data')
         self.train_sample, self.test_sample = data_manager.data_manager(
-            './numbers', 1000, self.train_size, 'overlap', True).make_sample()
+            './numbers', 1000, self.train_size, attenate_flag=True).make_sample()
         self.input_matrix_size = self.train_sample.input_matrix_size
         self.output_matrix_size = self.train_sample.output_matrix_size
 

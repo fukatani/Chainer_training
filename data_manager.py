@@ -17,7 +17,7 @@ import numpy as np
 class data_manager(object):
     def get_xy(self, data_dict):
         for name, data in data_dict.items():
-            x = np.arange(0, self.data_size, 1)
+            x = np.arange(0, len(data_dict[name]), 1)
             yield x, data, name
 
     def get_sum_line(self, filename):
@@ -69,8 +69,10 @@ class data_manager(object):
             plt.show()
 
     def get_data(self):
-        self.data_slide_split()
-        return self.attenate(self.splited_data_dict)
+        if self.split_mode:
+            self.data_slide_split()
+            return self.attenate(self.splited_data_dict)
+        return self.attenate(self.raw_data_dict)
 
     def get_target(self, name):
         return 0 if name[0:2] == 'fu' else 1
@@ -123,7 +125,7 @@ class data_manager(object):
                  directory,
                  data_size=10000,
                  train_size=100,
-                 split_mode='',
+                 split_mode=True,
                  attenate_flag=False,
                  save_as_png=True,
                  slide=4,
@@ -131,6 +133,7 @@ class data_manager(object):
         self.directory = directory
         self.data_size = data_size
         self.train_size = train_size
+        self.split_mode = split_mode
         self.offset_width = self.data_size / slide
         self.attenate_flag = attenate_flag
         self.save_as_png = save_as_png
@@ -169,6 +172,6 @@ class Abstract_sample(object):
         self.sample_size = target.size / target[0].size
 
 if __name__ == '__main__':
-    dm = data_manager('./numbers', 1000, 100,'overlap', True, save_as_png=False)
-    #dm.plot()
-    dm.make_sample()
+    dm = data_manager('./numbers', 1000, 100, split_mode=False, attenate_flag=True, save_as_png=False)
+    dm.plot()
+    #dm.make_sample()

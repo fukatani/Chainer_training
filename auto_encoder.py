@@ -31,7 +31,7 @@ class Autoencoder(Mychain):
     def set_sample(self):
         print('fetch data')
         self.train_sample, self.test_sample = dm_for_ae('./numbers'
-            , 1000, self.train_size, 'overlap', True, slide=4, keywords=self.keywords).make_sample()
+            , 1000, self.train_size, attenate_flag=True, slide=4, keywords=self.keywords).make_sample()
         self.input_matrix_size = self.train_sample.input_matrix_size
         self.output_matrix_size = self.train_sample.output_matrix_size
 
