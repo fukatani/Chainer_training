@@ -71,8 +71,14 @@ class data_manager(object):
     def get_data(self):
         if self.split_mode:
             self.data_slide_split()
-            return self.attenate(self.splited_data_dict)
-        return self.attenate(self.raw_data_dict)
+            if self.attenate_flag:
+                return self.attenate(self.splited_data_dict)
+            else:
+                return self.splited_data_dict
+        if self.attenate_flag:
+            return self.attenate(self.raw_data_dict)
+        else:
+            return self.raw_data_dict
 
     def get_target(self, name):
         return 0 if name[0:2] == 'fu' else 1
