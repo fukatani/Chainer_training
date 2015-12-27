@@ -60,13 +60,13 @@ class Mychain(object):
             print('time elapsed ' + str(end-start))
         return wrapper
 
-    def prepare_sample(self, train_size):
-        return self.train_sample.data, self.train_sample.target, self.test_sample.data, self.test_sample.target
-
     @time_record
     def learning(self, train_size, batchsize, n_epoch):
         optimizer = self.optimizer
-        x_train, y_train, x_test, y_test = self.prepare_sample(train_size)
+        x_train = self.train_sample.data
+        y_train = self.train_sample.target
+        x_test = self.test_sample.data
+        y_test = self.test_sample.target
         test_data_size = x_test.shape[0]
 
         train_loss = []
@@ -107,7 +107,8 @@ class Mychain(object):
                 print('train mean loss={}'.format(sum_loss / train_size))
             else:
                 print('train mean loss={}, accuracy={}'.format(sum_loss / train_size, sum_accuracy / train_size))
-                # evaluation
+
+            # evaluation
             sum_accuracy = 0
             sum_loss     = 0
             for i in xrange(0, test_data_size, batchsize):
@@ -130,10 +131,12 @@ class Mychain(object):
             else:
                 print('test  mean loss={}, accuracy={}'.format(sum_loss / test_data_size, sum_accuracy / test_data_size))
         if self.plot_enable:
-            self.disp_plot(train_acc, test_acc)
+            self.disp_learn_result(train_acc, test_acc)
 
-    def disp_plot(self, train_acc, test_acc):
-        # display accuracy for test as graph
+    def disp_learn_result(self, train_acc, test_acc):
+        """
+        display accuracy for test as graph
+        """
         plt.style.use('ggplot')
         plt.figure(figsize=(8, 6))
         plt.plot(range(len(train_acc)), train_acc)

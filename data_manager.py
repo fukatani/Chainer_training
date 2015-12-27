@@ -116,7 +116,7 @@ class data_manager(object):
         def wrapper(self, *args, **kwargs):
             train, test = func(self, *args, **kwargs)
             train.data  -= np.min(train.data)
-            train.data   = train.data.astype(np.float32)
+            train.data  /= np.max(train.data)
             train.target = train.target.astype(np.int32)
             test.data  -= np.min(test.data)
             test.data  /= np.max(test.data)
