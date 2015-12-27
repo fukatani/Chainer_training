@@ -12,6 +12,7 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import util
 
 class data_manager(object):
     def get_xy(self, data_dict):
@@ -19,17 +20,18 @@ class data_manager(object):
             x = np.arange(0, len(data_dict[name]), 1)
             yield x, data, name
 
-    def get_sum_line(self, filename):
-        """
-        Count all line in file.
-        """
-        return sum(1 for line in open(filename, 'r'))
-
     def data_slide_split(self):
         """
         ex. [1,2,3,4,5,6,7,8,9] -> [1,2,3,4,5], [2,3,4,5,6], ..., [5,6,7,8,9]
         """
         self.splited_data_dict = {}
+        for name, data_array in self.raw_data_dict.items():
+            i = 0
+            while i * self.offset_width + self.data_size < self.array_size:
+                self.splited_data_dict[name + '_s' + str(i)] = data_array[i * self.offset_width: i * self.offset_width + self.data_size]
+                i += 1
+    def split_by_moving_average_peak(self):
+        #TODO
         for name, data_array in self.raw_data_dict.items():
             i = 0
             while i * self.offset_width + self.data_size < self.array_size:
@@ -51,7 +53,7 @@ class data_manager(object):
         Get numpy array (raw_data) from *.dat file.
         """
         self.raw_data_dict = {}
-        self.array_size = min([self.get_sum_line(os.path.join(self.directory, name)) for name in os.listdir(self.directory)])
+        self.array_size = min([util.get_sum_line(os.path.join(self.directory, name)) for name in os.listdir(self.directory)])
         for each_file in os.listdir(self.directory):
             new_array = np.zeros(self.array_size)
             read_file = open(os.path.join(self.directory, each_file), 'r')
@@ -68,7 +70,7 @@ class data_manager(object):
         """
         Get final data from raw_data.
         """
-        if self.split_mode:
+        if self.split_mode == 'slide':
             self.data_slide_split()
             if self.attenate_flag:
                 return self.attenate(self.splited_data_dict)
@@ -155,7 +157,7 @@ class data_manager(object):
                  directory,
                  data_size=10000,
                  train_size=100,
-                 split_mode=True,
+                 split_mode='slide',
                  attenate_flag=False,
                  save_as_png=True,
                  slide=4,
@@ -202,6 +204,6 @@ class Abstract_sample(object):
         self.sample_size = target.size / target[0].size
 
 if __name__ == '__main__':
-    dm = data_manager('./numbers', 1000, 100, split_mode=False, attenate_flag=True, save_as_png=False)
+    dm = data_manager('./numbers', 1000, 100, split_mode='', attenate_flag=True, save_as_png=False)
     dm.plot()
     #dm.make_sample()
