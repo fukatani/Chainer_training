@@ -59,6 +59,7 @@ class data_manager(object):
         self.raw_data_dict = OrderedDict()
         self.array_size = min([util.get_sum_line(os.path.join(self.directory, name)) for name in os.listdir(self.directory)])
         for each_file in os.listdir(self.directory):
+            if each_file[-4:] != '.dat': continue
             new_array = np.zeros(self.array_size)
             read_file = open(os.path.join(self.directory, each_file), 'r')
             i = 0

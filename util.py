@@ -64,8 +64,32 @@ def time_record(func):
         print('time elapsed ' + str(end-start))
     return wrapper
 
+def disp_all_dump_data():
+    data_dict = read_all_data('./dump_files', '.dump')
+    simple_plot(data=data_dict.values(),
+                legend=data_dict.keys())
+
+def read_all_data(directory, extension='.dat'):
+    """
+    Get numpy array (raw_data) from *.dat file.
+    """
+    import os
+    from collections import OrderedDict
+    raw_data_dict = OrderedDict()
+    array_size = min([get_sum_line(os.path.join(directory, name)) for name in os.listdir(directory)])
+    for file_name in os.listdir(directory):
+        if file_name[-len(extension):] != extension: continue
+        read_file = open(os.path.join(directory, file_name), 'r')
+        i = 0
+        line = read_file.readline()
+        new_array = np.array([float(num_str) for num_str in (line.split(' '))])
+        read_file.close()
+        raw_data_dict[file_name] = new_array
+    return raw_data_dict
+
 if __name__ == '__main__':
     #simple_plot(np.array([1,2,3]))
-    a = np.array([1,2,3,4,3,6,9,8,10,7,6,5,3,1])
-    b = calc_moving_average(a, 5)
-    simple_plot([a, b])
+    #a = np.array([1,2,3,4,3,6,9,8,10,7,6,5,3,1])
+    #b = calc_moving_average(a, 5)
+    #simple_plot([a, b])
+    disp_all_dump_data()

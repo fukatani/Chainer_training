@@ -182,7 +182,9 @@ class Mychain(object):
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
             if 'dump_final_result' in self.keywords.keys():
-                np.savetxt(y, open(''.join(('dump', i, '.dat')), 'w'))
+                if not os.path.exists('./dump_files'):
+                    os.mkdir('./dump_files')
+                np.savetxt(''.join(('./dump_files/final_result', str(i), '.dump')), y)
         if self.save_as_png:
             plt.savefig('./Image/final_test.png')
         plt.show()
