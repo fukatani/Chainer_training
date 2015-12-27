@@ -18,6 +18,7 @@ import sys
 import data_manager
 import pickle
 import os
+import util
 
 #constructing newral network
 class Mychain(object):
@@ -49,18 +50,7 @@ class Mychain(object):
         #self.optimizer = optimizers.Adam(alpha=0.01)
         self.optimizer.setup(self.model.collect_parameters())
 
-    def time_record(func):
-        import datetime
-        from functools import wraps
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            start = datetime.datetime.today()
-            result = func(*args, **kwargs)
-            end = datetime.datetime.today()
-            print('time elapsed ' + str(end-start))
-        return wrapper
-
-    @time_record
+    @util.time_record
     def learning(self, train_size, batchsize, n_epoch):
         optimizer = self.optimizer
         x_train = self.train_sample.data

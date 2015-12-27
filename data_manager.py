@@ -20,7 +20,7 @@ class data_manager(object):
             x = np.arange(0, len(data_dict[name]), 1)
             yield x, data, name
 
-    def data_slide_split(self):
+    def split_by_slide(self):
         """
         ex. [1,2,3,4,5,6,7,8,9] -> [1,2,3,4,5], [2,3,4,5,6], ..., [5,6,7,8,9]
         """
@@ -30,12 +30,15 @@ class data_manager(object):
             while i * self.offset_width + self.data_size < self.array_size:
                 self.splited_data_dict[name + '_s' + str(i)] = data_array[i * self.offset_width: i * self.offset_width + self.data_size]
                 i += 1
-    def split_by_moving_average_peak(self):
-        #TODO
+    def split_by_peak(self):
+        from scipy import signal
+        self.splited_data_dict = {}
         for name, data_array in self.raw_data_dict.items():
+            m_buttored = util.filter_signal(data_array, 0.01)
+            max_indexes = signal.argrelmax(m_buttored)[0]
             i = 0
-            while i * self.offset_width + self.data_size < self.array_size:
-                self.splited_data_dict[name + '_s' + str(i)] = data_array[i * self.offset_width: i * self.offset_width + self.data_size]
+            for max_index in max_indexes:
+                self.splited_data_dict[name + '_s' + str(i)] = data_array[max_index: max_index + self.data_size]
                 i += 1
 
     def attenate(self, data_dict):
@@ -70,8 +73,11 @@ class data_manager(object):
         """
         Get final data from raw_data.
         """
-        if self.split_mode == 'slide':
-            self.data_slide_split()
+        if self.split_mode:
+            if self.split_mode == 'slide':
+                self.split_by_slide()
+            else:
+                self.split_by_peak()
             if self.attenate_flag:
                 return self.attenate(self.splited_data_dict)
             else:
@@ -189,6 +195,10 @@ class data_manager(object):
             if self.denoised_enable:
                 self.noise_coef = self.keywords['denoised_enable']
             self.offset_cancel = 'offset_cancel' in self.keywords.keys()
+            if 'split_mode' in self.keywords.keys():
+                self.split_mode = self.keywords['split_mode']
+            if 'input_data_size' in self.keywords.keys():
+                self.data_size = self.keywords['input_data_size']
         else:
             self.randomization = False
             self.order = False
@@ -204,6 +214,7 @@ class Abstract_sample(object):
         self.sample_size = target.size / target[0].size
 
 if __name__ == '__main__':
-    dm = data_manager('./numbers', 1000, 100, split_mode='', attenate_flag=True, save_as_png=False)
+    #dm = data_manager('./numbers', 1000, 100, split_mode='slide', attenate_flag=True, save_as_png=False)
+    dm = data_manager('./numbers', 300, 100, split_mode='pp', attenate_flag=True, save_as_png=False)
     dm.plot()
     #dm.make_sample()
