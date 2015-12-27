@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
-# Name:        module1
-# Purpose:     Conventional graph display script by using matplotlib
+# Name:        data_manager
+# Purpose:     Data manager for chainer
 #
 # Author:      rf
 #
@@ -13,7 +13,6 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-#future replaced data_manager
 class data_manager(object):
     def get_xy(self, data_dict):
         for name, data in data_dict.items():
@@ -21,9 +20,15 @@ class data_manager(object):
             yield x, data, name
 
     def get_sum_line(self, filename):
+        """
+        Count all line in file.
+        """
         return sum(1 for line in open(filename, 'r'))
 
     def data_slide_split(self):
+        """
+        ex. [1,2,3,4,5,6,7,8,9] -> [1,2,3,4,5], [2,3,4,5,6], ..., [5,6,7,8,9]
+        """
         self.splited_data_dict = {}
         for name, data_array in self.raw_data_dict.items():
             i = 0
@@ -32,6 +37,9 @@ class data_manager(object):
                 i += 1
 
     def attenate(self, data_dict):
+        """
+        ex. [1,2,3,4,5] -> [2,3,4,5,6]
+        """
         attenated_data_dict = {}
         for name, data_array in data_dict.items():
             for i, coef in enumerate(self.a_coefs):
@@ -39,20 +47,37 @@ class data_manager(object):
         return attenated_data_dict
 
     def read_all_data(self):
+        """
+        Get numpy array (raw_data) from *.dat file.
+        """
         self.raw_data_dict = {}
-        for (root, dirs, files) in os.walk(self.directory):
-            self.array_size = min([self.get_sum_line(os.path.join(root, name)) for name in files])
-            for file_name in files:
-                new_array = np.zeros(self.array_size)
-                read_file = open(os.path.join(root, file_name), 'r')
-                i = 0
-                for line in read_file:
-                    new_array[i] = int(line)
-                    i += 1
-                    if i == self.array_size:
-                        break
-                read_file.close()
-                self.raw_data_dict[file_name] = new_array
+        self.array_size = min([self.get_sum_line(os.path.join(self.directory, name)) for name in os.listdir(self.directory)])
+        for each_file in os.listdir(self.directory):
+            new_array = np.zeros(self.array_size)
+            read_file = open(os.path.join(self.directory, each_file), 'r')
+            i = 0
+            for line in read_file:
+                new_array[i] = int(line)
+                i += 1
+                if i == self.array_size:
+                    break
+            read_file.close()
+            self.raw_data_dict[each_file] = new_array
+
+    def get_data(self):
+        """
+        Get final data from raw_data.
+        """
+        if self.split_mode:
+            self.data_slide_split()
+            if self.attenate_flag:
+                return self.attenate(self.splited_data_dict)
+            else:
+                return self.splited_data_dict
+        if self.attenate_flag:
+            return self.attenate(self.raw_data_dict)
+        else:
+            return self.raw_data_dict
 
     def plot(self):
         plt.title('Title')
@@ -68,34 +93,33 @@ class data_manager(object):
         else:
             plt.show()
 
-    def get_data(self):
-        if self.split_mode:
-            self.data_slide_split()
-            if self.attenate_flag:
-                return self.attenate(self.splited_data_dict)
-            else:
-                return self.splited_data_dict
-        if self.attenate_flag:
-            return self.attenate(self.raw_data_dict)
-        else:
-            return self.raw_data_dict
-
     def get_target(self, name):
         return 0 if name[0:2] == 'fu' else 1
 
+    def get_spectrogram(self, data_dict):
+        #TODO
+        from scipy import signal
+        spectrogram_dict = {}
+
+        for name, data in data_dict.items():
+            f, t, Sxx = signal.spectrogram(data, fs=1)
+            plt.pcolormesh(t, f, Sxx)
+        return spectrogram_dict
+
     def process_sample_backend(func):
+        """
+        Data processing after make sample.
+        """
         import datetime
         from functools import wraps
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             train, test = func(self, *args, **kwargs)
             train.data  -= np.min(train.data)
-            train.data  /= np.max(train.data)
             train.data   = train.data.astype(np.float32)
             train.target = train.target.astype(np.int32)
             test.data  -= np.min(test.data)
             test.data  /= np.max(test.data)
-            test.data   = test.data.astype(np.float32)
             test.target = test.target.astype(np.int32)
             return train, test
         return wrapper

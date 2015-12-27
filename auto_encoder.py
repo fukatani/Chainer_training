@@ -78,14 +78,12 @@ class dm_for_ae(data_manager):
             train, test = func(self, *args, **kwargs)
             train.data  -= np.min(train.data)
             train.data  /= np.max(train.data)
-            train.data   = train.data.astype(np.float32)
             train.target = np.array(train.data)
             if self.denoised_enable: # Add noise
                 train.data += (np.random.normal(size = train.data.shape) / self.noise_coef)
 
             test.data  -= np.min(test.data)
             test.data  /= np.max(test.data)
-            test.data   = test.data.astype(np.float32)
             test.target = np.array(test.data)
             if self.offset_cancel:
                 train.data = self.offset_minus(train.data)

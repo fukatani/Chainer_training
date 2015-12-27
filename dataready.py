@@ -27,7 +27,8 @@ def int_communication(data_dir, freq, single, adr_change, backend, skip_meas, cl
     global write_file
     if not skip_meas:
         import te_setup
-        import RPi.GPIO as GPIO
+        #import RPi.GPIO as GPIO
+        import RPIO as GPIO
         import spidev
 
         spi = spidev.SpiDev()
@@ -50,9 +51,12 @@ def int_communication(data_dir, freq, single, adr_change, backend, skip_meas, cl
                 callback_adr(6)
         else:
             try:
+                if clk_enable:
+                    GPIO.setup(5, RPIO.ALT0)
                 while True:
                     time.sleep(1)
             except KeyboardInterrupt:
+                GPIO.setup(5, RPIO.INPUT)
                 GPIO.cleanup()
                 #global write_file
         time.sleep(0.1)
@@ -82,9 +86,10 @@ if __name__ == '__main__':
     optparser.add_option("-w","--without_setup",dest="without_setup", action="store_true",
                          default=False, help="Without setup, Default=False")
     optparser.add_option("-s","--skip_meas",dest="skip_meas", action="store_true",
-                         default=False, help="Skip measurement, Default=False")
-    optparser.add_option("-C","--clock_enable",dest="clock_enable", action="store_true",
-                         default=False, help="Clk enable during measurement, Default=False")
+                         default=False, help="Skip measurement only do backend, Default=False")
+    optparser.add_option("-C","--clock_enable",dest="clk_enable", action="store_true",
+                         default=False, help="Clock enable during measurement, Default=False")
+
     (options, args) = optparser.parse_args()
 
     DATA_DIR = './data/'
