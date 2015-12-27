@@ -13,6 +13,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import util
+from collections import OrderedDict
 
 class data_manager(object):
     def get_xy(self, data_dict):
@@ -24,7 +25,7 @@ class data_manager(object):
         """
         ex. [1,2,3,4,5,6,7,8,9] -> [1,2,3,4,5], [2,3,4,5,6], ..., [5,6,7,8,9]
         """
-        self.splited_data_dict = {}
+        self.splited_data_dict = OrderedDict()
         for name, data_array in self.raw_data_dict.items():
             i = 0
             while i * self.offset_width + self.data_size < self.array_size:
@@ -32,7 +33,7 @@ class data_manager(object):
                 i += 1
     def split_by_peak(self):
         from scipy import signal
-        self.splited_data_dict = {}
+        self.splited_data_dict = OrderedDict()
         for name, data_array in self.raw_data_dict.items():
             m_buttored = util.filter_signal(data_array, 0.01)
             max_indexes = signal.argrelmax(m_buttored)[0]
@@ -45,7 +46,7 @@ class data_manager(object):
         """
         ex. [1,2,3,4,5] -> [2,3,4,5,6]
         """
-        attenated_data_dict = {}
+        attenated_data_dict = OrderedDict()
         for name, data_array in data_dict.items():
             for i, coef in enumerate(self.a_coefs):
                 attenated_data_dict[name + '_a' + str(i)] = data_array + coef
@@ -55,7 +56,7 @@ class data_manager(object):
         """
         Get numpy array (raw_data) from *.dat file.
         """
-        self.raw_data_dict = {}
+        self.raw_data_dict = OrderedDict()
         self.array_size = min([util.get_sum_line(os.path.join(self.directory, name)) for name in os.listdir(self.directory)])
         for each_file in os.listdir(self.directory):
             new_array = np.zeros(self.array_size)
@@ -107,7 +108,7 @@ class data_manager(object):
     def get_spectrogram(self, data_dict):
         #TODO
         from scipy import signal
-        spectrogram_dict = {}
+        spectrogram_dict = OrderedDict()
 
         for name, data in data_dict.items():
             f, t, Sxx = signal.spectrogram(data, fs=1)
@@ -204,6 +205,7 @@ class data_manager(object):
             self.order = False
             self.all_same = False
             self.denoised_enable = False
+            self.offset_cancel = False
 
 class Abstract_sample(object):
     def __init__(self, data, target, output_matrix_size):

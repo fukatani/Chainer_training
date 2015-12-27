@@ -43,28 +43,6 @@ class Autoencoder(Mychain):
         plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
         plt.plot(np.arange(0, self.input_matrix_size, 1), y)
 
-    def __init__(self, pickle_enable=False,
-                 plot_enable=True,
-                 save_as_png=True,
-                 final_test_enable=True,
-                 is_clastering=False,
-                 train_size=100,
-                 batch_size=10,
-                 n_epoch=10,
-                 n_units=200,
-                 **keywords):
-        self.keywords = keywords
-        Mychain.__init__(self,
-                         pickle_enable,
-                         plot_enable,
-                         save_as_png,
-                         final_test_enable,
-                         is_clastering,
-                         train_size,
-                         batch_size,
-                         n_epoch,
-                         n_units)
-
 class dm_for_ae(data_manager):
 
     def offset_minus(self, data):
@@ -142,10 +120,11 @@ class dm_for_ae(data_manager):
 if __name__ == '__main__':
     #Autoencoder(train_size=98, n_epoch=10, n_units=300, same_sample=1, offset_cancel=True)
     Autoencoder(train_size=98,
-                n_epoch=10,
+                n_epoch=20,
                 n_units=300,
-                same_sample=10,
+                same_sample=3,
                 offset_cancel=True,
+                is_clastering=False,
                 input_data_size=300,
                 split_mode='pp'
                 )

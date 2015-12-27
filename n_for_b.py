@@ -170,7 +170,7 @@ class Mychain(object):
         if y_batch is None:
             y_batch = np.zeros(len(x_batch))
         for i in range(x_batch.shape[0]):
-            #single test
+            #single test (mini batch size == 1)
             x = x_batch[i:i+1]
             y = y_batch[i:i+1]
             recog_answer, loss = self.forward(x, y, train=False, answer=True)
@@ -181,6 +181,8 @@ class Mychain(object):
             plt.title(self.get_final_test_title(answer, recog_answer[0], loss), size=8)
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
+            if 'dump_final_result' in self.keywords.keys():
+                np.savetxt(y, open(''.join(('dump', i, '.dat')), 'w'))
         if self.save_as_png:
             plt.savefig('./Image/final_test.png')
         plt.show()
@@ -213,6 +215,8 @@ class Mychain(object):
             os.mkdir('./Image')
         if keywords:
             self.keywords = keywords
+        else:
+            self.keywords = {}
 
         # setup chainer
         self.set_sample()
