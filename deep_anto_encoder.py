@@ -53,5 +53,12 @@ class Deepautoencoder(Autoencoder):
                             )
 
 if __name__ == '__main__':
-    Deepautoencoder(train_size=98, n_epoch=50, n_units=250, same_sample=10, offset_cancel=True)
-    #Deepautoencoder(train_size=98, n_epoch=30, n_units=250, order_sample=True, offset_cancel=True)
+    #Deepautoencoder(train_size=98, n_epoch=50, n_units=250, same_sample=10, offset_cancel=True)
+    Deepautoencoder(train_size=98,
+            n_epoch=100,
+            n_units=300,
+            same_sample=10,
+            offset_cancel=True,
+            input_data_size=300,
+            split_mode='pp'
+            )

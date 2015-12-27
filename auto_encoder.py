@@ -144,7 +144,7 @@ if __name__ == '__main__':
     Autoencoder(train_size=98,
                 n_epoch=10,
                 n_units=300,
-                same_sample=1,
+                same_sample=10,
                 offset_cancel=True,
                 input_data_size=300,
                 split_mode='pp'
