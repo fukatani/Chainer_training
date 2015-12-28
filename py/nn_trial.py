@@ -111,7 +111,10 @@ class Mychain(object):
                 sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
 
             # display accuracy for test
-            print('test  mean loss={}, accuracy={}'.format(sum_loss / test_data_size, sum_accuracy / test_data_size))
+            self.last_loss = sum_loss / test_data_size
+            self.last_accuracy= sum_accuracy / test_data_size
+            print('test  mean loss={}, accuracy={}'.format(self.last_loss, self.last_accuracy))
+
         if self.plot_enable:
             self.disp_plot(train_acc, test_acc)
 

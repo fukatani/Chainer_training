@@ -116,10 +116,12 @@ class Mychain(object):
                 sum_loss += float(cuda.to_cpu(loss.data)) * batchsize
 
             # display accuracy for test
+            self.last_loss = sum_loss / test_data_size
             if not self.is_clastering:
-                print('test mean loss={}'.format(sum_loss / test_data_size))
+                print('test mean loss={}'.format(self.last_loss))
             else:
-                print('test  mean loss={}, accuracy={}'.format(sum_loss / test_data_size, sum_accuracy / test_data_size))
+                self.last_accuracy= sum_accuracy / test_data_size
+                print('test  mean loss={}, accuracy={}'.format(self.last_loss, self.last_accuracy))
         if self.plot_enable:
             self.disp_learn_result(train_acc, test_acc)
 
