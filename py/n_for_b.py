@@ -99,29 +99,19 @@ class Mychain(object):
                 print('train mean loss={}, accuracy={}'.format(sum_loss / train_size, sum_accuracy / train_size))
 
             # evaluation
-            sum_accuracy = 0
-            sum_loss     = 0
-            for i in xrange(0, test_data_size, batchsize):
-                x_batch = x_test[i:i+batchsize]
-                y_batch = y_test[i:i+batchsize]
-
-                # calc accuracy for test
-                if self.is_clastering:
-                    loss, acc = self.forward(x_batch, y_batch, train=False)
-                    test_acc.append(acc.data)
-                    sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
-                else:
-                    loss = self.forward(x_batch, y_batch, train=False)
-                test_loss.append(loss.data)
-                sum_loss += float(cuda.to_cpu(loss.data)) * batchsize
+            if self.is_clastering:
+                loss, acc = self.forward(x_test, y_test, train=False)
+                test_acc.append(acc.data)
+            else:
+                loss = self.forward(x_test, y_test, train=False)
+            test_loss.append(loss.data)
 
             # display accuracy for test
-            self.last_loss = sum_loss / test_data_size
             if not self.is_clastering:
-                print('test mean loss={}'.format(self.last_loss))
+                print('test mean loss={}'.format(sum_loss))
             else:
-                self.last_accuracy= sum_accuracy / test_data_size
-                print('test  mean loss={}, accuracy={}'.format(self.last_loss, self.last_accuracy))
+                print('test  mean loss={}, accuracy={}'.format(loss.data, acc.data))
+
         if self.plot_enable:
             self.disp_learn_result(train_acc, test_acc)
 
@@ -204,7 +194,7 @@ class Mychain(object):
                  final_test_enable=True,
                  is_clastering=True,
                  train_size=100,
-                 batch_size=10,
+                 batch_size=20,
                  n_epoch=10,
                  n_units=200,
                  **keywords):

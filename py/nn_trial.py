@@ -65,7 +65,7 @@ class Mychain(object):
         train_loss = []
         train_acc  = []
         test_loss = []
-        test_acc  = []
+        test_acc = []
 
         # Learning loop
         for epoch in xrange(1, n_epoch+1):
@@ -97,23 +97,13 @@ class Mychain(object):
             print('train mean loss={}, accuracy={}'.format(sum_loss / train_data_size, sum_accuracy / train_data_size))
 
             # evaluation
-            sum_accuracy = 0
-            sum_loss     = 0
-            for i in xrange(0, test_data_size, batchsize):
-                x_batch = x_test[i:i+batchsize]
-                y_batch = y_test[i:i+batchsize]
-
-                # calc accuracy for test
-                loss, acc = self.forward(x_batch, y_batch, train=False)
-                test_loss.append(loss.data)
-                test_acc.append(acc.data)
-                sum_loss     += float(cuda.to_cpu(loss.data)) * batchsize
-                sum_accuracy += float(cuda.to_cpu(acc.data)) * batchsize
+            # calc accuracy for test
+            loss, acc = self.forward(x_test, y_test, train=False)
+            test_loss.append(loss.data)
+            test_acc.append(acc.data)
 
             # display accuracy for test
-            self.last_loss = sum_loss / test_data_size
-            self.last_accuracy= sum_accuracy / test_data_size
-            print('test  mean loss={}, accuracy={}'.format(self.last_loss, self.last_accuracy))
+            print('test  mean loss={}, accuracy={}'.format(cuda.to_cpu(loss.data), cuda.to_cpu(acc.data)))
 
         if self.plot_enable:
             self.disp_plot(train_acc, test_acc)
@@ -146,7 +136,7 @@ class Mychain(object):
         self.plot_enable = plot_enable
 
         #self.learning(train_data_size=60000, batchsize=100, n_epoch=3)
-        self.learning(train_data_size=2000, batchsize=100, n_epoch=10)
+        self.learning(train_data_size=1000, batchsize=100, n_epoch=10)
 
         # Save final self.model
         if pickle_enable:

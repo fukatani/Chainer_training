@@ -16,7 +16,7 @@ import numpy as np
 
 #constructing newral network
 class PretrainingChain(ChainList):
-    def __init__(self, n_units, epoch=20, batch_size=10):
+    def __init__(self, n_units, epoch=10, batch_size=100):
         ChainList.__init__(self)
         self.n_units = n_units[0:-1]
         self.last_unit = n_units[-1]
@@ -81,14 +81,16 @@ class PretrainingChain(ChainList):
 
             if len(x_test):
                 x = Variable(x_test)
-                test_loss = self.loss_function(self.forward(x, train=False), y).data
+                y = Variable(y_test)
+                predict = self.forward(x, train=False)
+                test_loss = self.loss_function(predict, y).data
                 print('test_loss: ' + str(test_loss))
                 if isClassification:
-                    test_accuracy = F.accuracy(self.forward(x), t).data
+                    test_accuracy = F.accuracy(predict, y).data
                     print('test_accuracy: ' + str(test_accuracy))
 
 class ChildChainList(ChainList):
-    def __init__(self, link, epoch=20, batch_size=10):
+    def __init__(self, link, epoch=10, batch_size=100):
         ChainList.__init__(self, link)
         self.optimizer = optimizers.AdaDelta()
         self.optimizer.setup(self)
@@ -143,14 +145,15 @@ def make_sample():
     return sample
 
 if __name__ == '__main__':
-    train_data_size = 100
+    train_size = 4000
+    test_size = 400
     sample = make_sample()
     perm = np.random.permutation(len(sample.data))
-    x_train = sample.data[perm[0:train_data_size]]
-    y_train = sample.target[perm[0:train_data_size]]
-    x_test = sample.data[perm[train_data_size:2000]]
-    y_test = sample.target[perm[train_data_size:2000]]
-    pc = PretrainingChain([784,11,12,784])
+    x_train = sample.data[perm[0:train_size]]
+    y_train = sample.target[perm[0:train_size]]
+    x_test = sample.data[perm[train_size:train_size + test_size]]
+    y_test = sample.target[perm[train_size:train_size + test_size]]
+    pc = PretrainingChain([784,200,200,10])
     pc.pre_training(x_train, x_test)
     pc.learn(x_train, y_train, x_test, y_test, True)
 
