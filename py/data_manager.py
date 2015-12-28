@@ -99,7 +99,7 @@ class data_manager(object):
             plt.plot(x, y, label=name)
         plt.legend()
         if self.save_as_png:
-            plt.savefig('./Image/data.png')
+            plt.savefig(os.path.join(util.IMAGE_DIR,'data.png'))
         else:
             plt.show()
 
@@ -181,8 +181,8 @@ class data_manager(object):
 
         self.a_coefs = (-100, 100)
         self.group_suffixes = ('fu', 'in')
-        if save_as_png and not os.path.exists('./Image'):
-            os.mkdir('./Image')
+        if save_as_png and not os.path.exists(util.IMAGE_DIR):
+            os.mkdir(util.IMAGE_DIR)
         self.read_all_data()
         self.analyse_keywords()
 
@@ -218,6 +218,6 @@ class Abstract_sample(object):
 
 if __name__ == '__main__':
     #dm = data_manager('./numbers', 1000, 100, split_mode='slide', attenate_flag=True, save_as_png=False)
-    dm = data_manager('./numbers', 300, 100, split_mode='pp', attenate_flag=True, save_as_png=False)
+    dm = data_manager(util.DATA_DIR, 300, 100, split_mode='pp', attenate_flag=True, save_as_png=False)
     dm.plot()
     #dm.make_sample()

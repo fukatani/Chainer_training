@@ -15,6 +15,7 @@ from data_manager import data_manager, Abstract_sample
 from chainer import cuda, Variable, FunctionSet, optimizers
 import chainer.functions as F
 import numpy as np
+import util
 
 #constructing newral network
 class Autoencoder(Mychain):
@@ -30,7 +31,7 @@ class Autoencoder(Mychain):
 
     def set_sample(self):
         print('fetch data')
-        self.train_sample, self.test_sample = dm_for_ae('./numbers'
+        self.train_sample, self.test_sample = dm_for_ae(util.DATA_DIR
             , 1000, self.train_size, attenate_flag=True, slide=4, keywords=self.keywords).make_sample()
         self.input_matrix_size = self.train_sample.input_matrix_size
         self.output_matrix_size = self.train_sample.output_matrix_size

@@ -136,14 +136,14 @@ class Mychain(object):
         plt.plot()
 
         if self.save_as_png:
-            plt.savefig('./Image/learn_result.png')
+            plt.savefig(os.path.join(util.IMAGE_DIR, 'learn_result.png'))
         else:
             plt.show()
 
     def set_sample(self):
         print('fetch data')
         self.train_sample, self.test_sample = data_manager.data_manager(
-            './numbers', 1000, self.train_size, attenate_flag=True).make_sample()
+            util.DATA_DIR, 1000, self.train_size, attenate_flag=True).make_sample()
         self.input_matrix_size = self.train_sample.input_matrix_size
         self.output_matrix_size = self.train_sample.output_matrix_size
 
@@ -182,11 +182,11 @@ class Mychain(object):
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
             if 'dump_final_result' in self.keywords.keys():
-                if not os.path.exists('./dump_files'):
-                    os.mkdir('./dump_files')
-                np.savetxt(''.join(('./dump_files/final_result', str(i), '.dump')), y)
+                if not os.path.exists(util.DUMP_DIR):
+                    os.mkdir(util.DUMP_DIR)
+                np.savetxt(''.join((util.DUMP_DIR + 'final_result', str(i), '.dump')), y)
         if self.save_as_png:
-            plt.savefig('./Image/final_test.png')
+            plt.savefig(os.path.join(util.IMAGE_DIR, 'final_test.png'))
         plt.show()
 
     def get_final_test_title(self, answer, recog_answer, loss=None):
@@ -213,8 +213,8 @@ class Mychain(object):
         self.is_clastering = is_clastering
         self.n_units = n_units
         self.train_size = train_size
-        if save_as_png and not os.path.exists('./Image'):
-            os.mkdir('./Image')
+        if save_as_png and not os.path.exists(util.IMAGE_DIR):
+            os.mkdir(util.IMAGE_DIR)
         if keywords:
             self.keywords = keywords
         else:

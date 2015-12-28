@@ -12,6 +12,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+DUMP_DIR = '../dump_files'
+IMAGE_DIR = '../Image'
+DATA_DIR = '../numbers'
+
 def get_sum_line(filename):
     """
     Count all line in file.
@@ -65,7 +69,7 @@ def time_record(func):
     return wrapper
 
 def disp_all_dump_data():
-    data_dict = read_all_data('./dump_files', '.dump')
+    data_dict = read_all_data(DUMP_DIR, '.dump')
     simple_plot(data=data_dict.values(),
                 legend=data_dict.keys())
 

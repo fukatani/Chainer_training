@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     (options, args) = optparser.parse_args()
 
-    DATA_DIR = './data/'
+    DATA_DIR = '../../data/'
 
     if options.clean_flag and os.path.exists(os.path.join(DATA_DIR, 'data_0.dat')):
         os.remove(os.path.join(DATA_DIR, 'data_0.dat'))
