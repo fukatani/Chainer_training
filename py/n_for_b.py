@@ -19,6 +19,7 @@ import data_manager
 import pickle
 import os
 import util
+import six
 
 #constructing newral network
 class Mychain(object):
@@ -73,7 +74,7 @@ class Mychain(object):
             sum_accuracy = 0
             sum_loss = 0
 
-            for i in xrange(0, train_size, batchsize):
+            for i in six.moves.range(0, train_size, batchsize):
                 x_batch = x_train[perm[i:i+batchsize]]
                 y_batch = y_train[perm[i:i+batchsize]]
 
