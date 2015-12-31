@@ -121,12 +121,13 @@ class dm_for_ae(data_manager):
 if __name__ == '__main__':
     #Autoencoder(train_size=98, n_epoch=10, n_units=300, same_sample=1, offset_cancel=True)
     Autoencoder(train_size=98,
-                n_epoch=20,
+                n_epoch=50,
                 n_units=300,
                 same_sample=10,
                 offset_cancel=True,
                 is_clastering=False,
                 input_data_size=300,
                 split_mode='pp',
+                nobias=True,
                 #dump_final_result=True
                 )

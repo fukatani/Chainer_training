@@ -35,21 +35,21 @@ class Deepautoencoder(Autoencoder):
         else:
             return F.mean_squared_error(y, t)#, F.accuracy(y, t)
 
-    def set_model(self):
+    def set_model(self, nobias):
         try:
             self.load_from_pickle()
         except (IOError, EOFError):
-            self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, self.n_units),
-                            l2=F.Linear(self.n_units, self.n_units),
-                            l3=F.Linear(self.n_units, self.n_units),
-                            l4=F.Linear(self.n_units, self.n_units),
-                            l5=F.Linear(self.n_units, self.n_units),
-                            l6=F.Linear(self.n_units, self.n_units),
-                            l7=F.Linear(self.n_units, self.n_units),
-                            l8=F.Linear(self.n_units, self.n_units),
-                            l9=F.Linear(self.n_units, self.n_units),
-                            l10=F.Linear(self.n_units, self.n_units),
-                            l11=F.Linear(self.n_units, self.output_matrix_size)
+            self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, self.n_units, nobias=nobias),
+                            l2=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l3=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l4=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l5=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l6=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l7=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l8=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l9=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l10=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l11=F.Linear(self.n_units, self.output_matrix_size, nobias=nobias)
                             )
 
 if __name__ == '__main__':
@@ -62,5 +62,6 @@ if __name__ == '__main__':
             offset_cancel=True,
             is_clastering=False,
             input_data_size=300,
-            split_mode='pp'
+            split_mode='pp',
+            #nobias=True
             )

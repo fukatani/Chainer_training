@@ -38,13 +38,13 @@ class Mychain(object):
                 print('load from pickled data.')
                 self.model = pickle.load(f)
 
-    def set_model(self):
+    def set_model(self, nobias):
         try:
             self.load_from_pickle()
         except (IOError, EOFError):
-            self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, self.n_units),
-                            l2=F.Linear(self.n_units, self.n_units),
-                            l3=F.Linear(self.n_units, self.output_matrix_size))
+            self.model = FunctionSet(l1=F.Linear(self.input_matrix_size, self.n_units, nobias=nobias),
+                            l2=F.Linear(self.n_units, self.n_units, nobias=nobias),
+                            l3=F.Linear(self.n_units, self.output_matrix_size, nobias=nobias))
 
     def set_optimizer(self):
         self.optimizer = optimizers.AdaDelta()
@@ -214,8 +214,9 @@ class Mychain(object):
             self.keywords = {}
 
         # setup chainer
+        nobias = 'nobias' in keywords.keys()
         self.set_sample()
-        self.set_model()
+        self.set_model(nobias)
         self.set_optimizer()
 
         self.learning(train_size=train_size, batchsize=10, n_epoch=n_epoch)
