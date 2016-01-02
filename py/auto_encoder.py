@@ -121,9 +121,9 @@ class dm_for_ae(data_manager):
 if __name__ == '__main__':
     #Autoencoder(train_size=98, n_epoch=10, n_units=300, same_sample=1, offset_cancel=True)
     Autoencoder(train_size=98,
-                n_epoch=50,
+                n_epoch=150,
                 n_units=300,
-                same_sample=10,
+                same_sample=50,
                 offset_cancel=True,
                 is_clastering=False,
                 input_data_size=300,
