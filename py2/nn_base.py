@@ -13,6 +13,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import chainer.functions as F
+from chainer import Variable
 import sys
 import data_manager
 import pickle
@@ -25,7 +26,7 @@ from AbstractChain import AbstractChain
 class b_classfy(AbstractChain):
 
     def add_last_layer(self):
-        self.add_link(F.Linear(self.n_units[-1], self.last_unit))
+        self.add_link(F.Linear(self.n_units[-1], self.last_unit, nobias=self.nobias))
 
     def loss_function(self, x, y):
         return F.softmax_cross_entropy(x, y)
@@ -52,16 +53,10 @@ class b_classfy(AbstractChain):
         plt.style.use('ggplot')
         for i in range(16):
             plt.subplot(4, 4, i+1)
-            plt.plot(self.model.l1.W[i]), np.arange(0, len(self.model.l1.W[i]))
+            plt.plot(self[0].W.data[i]), np.arange(0, len(self[0].W.data[i]))
         plt.title("Weight of l1.")
         plt.plot()
         plt.show()
-
-    def extract_test_sample(self, test_data_size=9):
-        perm = np.random.permutation(self.test_sample.sample_size)
-        x_batch = self.test_sample.data[perm[0:test_data_size]]
-        y_batch = self.test_sample.target[perm[0:test_data_size]]
-        return x_batch, y_batch
 
     def final_test(self, x_batch, y_batch=None):
         plt.close('all')
@@ -73,12 +68,13 @@ class b_classfy(AbstractChain):
             #single test (mini batch size == 1)
             x = x_batch[i:i+1]
             y = y_batch[i:i+1]
-            recog_answer, loss = self.forward(x, y, train=False, answer=True)
+            recog_answer = np.argmax(self.forward(x, train=False).data)
+            loss = self.loss_function(self.forward(x, train=False), Variable(y))
             answer = y[0]
 
             plt.subplot(3, 3, i+1)
-            self.final_test_plot(x, recog_answer[0])
-            plt.title(self.get_final_test_title(answer, recog_answer[0], loss), size=8)
+            self.final_test_plot(x, recog_answer)
+            plt.title(self.get_final_test_title(answer, recog_answer, loss), size=8)
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
             if 'dump_final_result' in self.keywords.keys():
@@ -93,57 +89,52 @@ class b_classfy(AbstractChain):
         return "ans=%d, recog=%d"%(answer, recog_answer)
 
     def final_test_plot(self, x, y):
-        plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
+        plt.plot(np.arange(0, x.shape[1], 1), x[0])
 
     def __init__(self,
+                 n_units,
                  pickle_enable=False,
                  plot_enable=True,
                  save_as_png=True,
                  is_clastering=True,
                  batch_size=20,
-                 n_epoch=10,
-                 n_units=[1000,200,2],
+                 epoch=10,
                  **keywords):
 
-        AbstractChain.__init__(n_units=n_units,
+        AbstractChain.__init__(self,
+                               n_units=n_units,
                                epoch=epoch,
                                batch_size=batch_size,
-                               visualize=True
-                               )
+                               visualize=True,
+                               **keywords)
 
         #configuration
         self.plot_enable = plot_enable
         self.save_as_png = save_as_png
         self.is_clastering = is_clastering
-        self.n_units = n_units
         if save_as_png and not os.path.exists(util.IMAGE_DIR):
             os.mkdir(util.IMAGE_DIR)
-        if keywords:
-            self.keywords = keywords
-        else:
-            self.keywords = {}
 
-##        # setup chainer
-##        nobias = 'nobias' in keywords.keys()
-##        self.set_sample()
-##
-##        #self.disp_w()
-##        if final_test_enable:
-##            x_batch, y_batch = self.extract_test_sample()
-##            self.final_test(x_batch, y_batch)
-##
-##        # Save final self.model
-##        if pickle_enable:
-##            pickle.dump(self.model, open('self.model', 'w'), -1)
+        # Save final self.model
+        if pickle_enable:
+            pickle.dump(self.model, open('self.model', 'w'), -1)
 
 def set_sample(pre_train_size, pre_test_size, train_size, test_size):
     print('fetch data')
-    train_sample, test_sample = data_manager.data_manager(
-        util.DATA_DIR, 1000, self.train_size, attenate_flag=True).make_sample()
+    sections = [pre_train_size, pre_test_size, train_size, test_size]
+    sample = data_manager.data_manager(
+        util.DATA_DIR, 300,  split_mode='pp', attenate_flag=True).make_sample(sections)
+    p_x_train, p_x_test, x_train, x_test, _ = sample.data
+    _, _, y_train, y_test,_ = sample.target
+    return p_x_train, p_x_test, x_train, x_test, y_train, \
+           y_test, sample.input_matrix_size, sample.output_matrix_size
 
 if __name__ == '__main__':
-    bc = b_classfy()
-    p_x_train, p_x_test, x_test, x_train, y_train, y_test = set_sample()
-    bc.pre_training()
+    p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
+                                                    set_sample(1, 1, 120, 40)
+    bc = b_classfy([im, 150, 100, om])
+    bc.pre_training(p_x_train, p_x_test)
     bc.learn(x_train, y_train, x_test, y_test, isClassification=True)
+    #bc.disp_w()
+    bc.final_test(x_test[0:9], y_test[0:9])
 

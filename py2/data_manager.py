@@ -163,7 +163,7 @@ class data_manager(object):
 
     def __init__(self,
                  directory,
-                 data_size=10000,
+                 data_size=1000,
                  split_mode='slide',
                  attenate_flag=False,
                  save_as_png=True,

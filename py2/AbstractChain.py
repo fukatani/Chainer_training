@@ -41,17 +41,23 @@ class AbstractChain(ChainList):
     3) This class is super class of ChainList.
        So you can use function of ChainList.
     """
-    def __init__(self, n_units, epoch=10, batch_size=100, visualize=True):
+    def __init__(self, n_units, epoch=10, batch_size=100, visualize=True, **keywords):
         ChainList.__init__(self)
         self.n_units = n_units[0:-1]
         self.last_unit = n_units[-1]
         self.total_layer = len(n_units)
-        self.collect_child_model()
         self.set_optimizer()
         self.epoch = epoch
         self.batch_size = batch_size
         self.visualize = visualize
         self.pre_trained = False
+        if 'nobias' in keywords.keys():
+            self.nobias = keywords['nobias']
+        else:
+            self.nobias = False
+        self.keywords = keywords
+
+        self.collect_child_model()
 
     def set_optimizer(self):
         self.optimizer = optimizers.AdaDelta()
@@ -61,14 +67,14 @@ class AbstractChain(ChainList):
         self.child_models = []
         for i, n_unit in enumerate(self.n_units):
             if i == 0: continue
-            self.child_models.append(ChildChainList(P.PTLinear(self.n_units[i-1], n_unit)))
-            #self.child_models.append(ChildChainList(F.Linear(self.n_units[i-1], n_unit)))
+            self.child_models.append(ChildChainList(P.PTLinear(self.n_units[i-1], n_unit, nobias=self.nobias)))
 
     def forward(self, x_data, train=True):
-        data = x_data
+        if not isinstance(x_data, Variable):
+            x_data = Variable(x_data)
         for model in self:
-            data = F.dropout(F.relu(model(data)), train=train)
-        return data
+            x_data = F.dropout(F.relu(model(x_data)), train=train)
+        return x_data
 
     def pre_training(self, sample, test=[]):
         """
