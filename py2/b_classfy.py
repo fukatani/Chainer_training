@@ -15,7 +15,6 @@ import numpy as np
 import chainer.functions as F
 from chainer import Variable
 import sys
-import data_manager
 import pickle
 import os
 import util
@@ -129,26 +128,10 @@ class b_classfy(AbstractChain):
         if pickle_enable:
             pickle.dump(self.model, open('self.model', 'w'), -1)
 
-def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encoder=False, **keywords):
-    print('fetch data')
-    sections = [pre_train_size, pre_test_size, train_size, test_size]
-    sample = data_manager.data_manager(util.DATA_DIR,
-                                       data_size=300,
-                                       split_mode='pp',
-                                       attenate_flag=True,
-                                       auto_encoder=auto_encoder,
-                                       offset_cancel=True,
-                                       keywords=keywords
-                                       ).make_sample(sections)
-    p_x_train, p_x_test, x_train, x_test, _ = sample.data
-    _, _, y_train, y_test, _ = sample.target
-    return p_x_train, p_x_test, x_train, x_test, y_train, \
-           y_test, sample.input_matrix_size, sample.output_matrix_size
-
 if __name__ == '__main__':
     p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
-                                                    set_sample(1, 1, 100, 40)
-    bc = b_classfy([im, 150, 100, om], isClassification=True)
+                                                    util.set_sample(1, 1, 100, 40)
+    bc = b_classfy([im, 150, 150, om], isClassification=True)
     bc.pre_training(p_x_train, p_x_test)
     bc.learn(x_train, y_train, x_test, y_test)
     #bc.disp_w()

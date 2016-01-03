@@ -10,8 +10,7 @@
 #-------------------------------------------------------------------------------
 
 #%matplotlib inline
-from b_classfy import b_classfy, set_sample
-from data_manager import data_manager, Abstract_sample
+from b_classfy import b_classfy
 from chainer import cuda, Variable, FunctionSet, optimizers
 import chainer.functions as F
 import numpy as np
@@ -34,8 +33,8 @@ class Autoencoder(b_classfy):
 
 if __name__ == '__main__':
     p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
-                                                    set_sample(1, 1, 120, 40, same_sample=5)
-    bc = Autoencoder([im, 150, 100, im], is_classification=False)
+                                                    util.set_sample(1, 1, 120, 40, split_mode='pp',same_sample=5)
+    bc = Autoencoder([im, 150, 150, im], epoch=50, is_classification=False, offset_cancel=True)
     bc.pre_training(p_x_train, p_x_test)
     bc.learn(x_train, x_train, x_test, x_test)
     #bc.disp_w()

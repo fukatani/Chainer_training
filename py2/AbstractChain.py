@@ -15,6 +15,7 @@ from chainer import ChainList, optimizers
 import numpy as np
 import six
 import pt_linear as P
+import data_manager
 
 
 class AbstractChain(ChainList):
