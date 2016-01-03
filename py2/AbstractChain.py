@@ -41,7 +41,7 @@ class AbstractChain(ChainList):
     3) This class is super class of ChainList.
        So you can use function of ChainList.
     """
-    def __init__(self, n_units, epoch=10, batch_size=20, visualize=True, **keywords):
+    def __init__(self, n_units, epoch=10, batch_size=20, visualize=True, is_classification=True,**keywords):
         ChainList.__init__(self)
         self.n_units = n_units[0:-1]
         self.last_unit = n_units[-1]
@@ -50,6 +50,7 @@ class AbstractChain(ChainList):
         self.epoch = epoch
         self.batch_size = batch_size
         self.visualize = visualize
+        self.is_classification = is_classification
         self.pre_trained = False
         if 'nobias' in keywords.keys():
             self.nobias = keywords['nobias']
@@ -138,7 +139,7 @@ class AbstractChain(ChainList):
                 predict = self.forward(x, train=False)
                 test_loss = self.loss_function(predict, y).data
                 print('test_loss: ' + str(test_loss))
-                if isClassification:
+                if self.is_classification:
                     test_accuracy = F.accuracy(predict, y).data
                     print('test_accuracy: ' + str(test_accuracy))
 

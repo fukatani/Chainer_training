@@ -96,7 +96,6 @@ class b_classfy(AbstractChain):
                  pickle_enable=False,
                  plot_enable=True,
                  save_as_png=True,
-                 is_clastering=True,
                  batch_size=10,
                  epoch=10,
                  **keywords):
@@ -111,7 +110,6 @@ class b_classfy(AbstractChain):
         #configuration
         self.plot_enable = plot_enable
         self.save_as_png = save_as_png
-        self.is_clastering = is_clastering
         if save_as_png and not os.path.exists(util.IMAGE_DIR):
             os.mkdir(util.IMAGE_DIR)
 
@@ -137,9 +135,9 @@ def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encode
 if __name__ == '__main__':
     p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
                                                     set_sample(1, 1, 100, 40)
-    bc = b_classfy([im, 150, 100, om])
+    bc = b_classfy([im, 150, 100, om], isClassification=True)
     bc.pre_training(p_x_train, p_x_test)
-    bc.learn(x_train, y_train, x_test, y_test, isClassification=True)
+    bc.learn(x_train, y_train, x_test, y_test)
     #bc.disp_w()
     bc.final_test(x_test[0:9], y_test[0:9])
 

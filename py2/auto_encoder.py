@@ -18,22 +18,11 @@ import numpy as np
 import util
 
 class Autoencoder(b_classfy):
-    def forward(self, x_data, y_data, train=True, answer=False):
-        x, t = Variable(x_data), Variable(y_data)
-        h1 = F.dropout(F.relu(self.model.l1(x)),  train=train)
-        h2 = F.dropout(self.model.l2(h1), train=train)
-        y  = self.model.l3(h2)
-        if answer:
-            return y.data, F.mean_squared_error(y, t)
-        else:
-            return F.mean_squared_error(y, t)#, F.accuracy(y, t)
+    def add_last_layer(self):
+        self.add_link(F.Linear(self.n_units[-1], self.last_unit, nobias=self.nobias))
 
-    def set_sample(self):
-        print('fetch data')
-        self.train_sample, self.test_sample = dm_for_ae(util.DATA_DIR
-            , 1000, self.train_size, attenate_flag=True, slide=4, keywords=self.keywords).make_sample()
-        self.input_matrix_size = self.train_sample.input_matrix_size
-        self.output_matrix_size = self.train_sample.output_matrix_size
+    def loss_function(self, x, y):
+        return F.softmax_cross_entropy(x, y)
 
     def get_final_test_title(self, answer, recog, loss):
         return str(loss.data)
@@ -46,8 +35,8 @@ class Autoencoder(b_classfy):
 if __name__ == '__main__':
     p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
                                                     set_sample(1, 1, 120, 40)
-    bc = Autoencoder([im, 150, 100, om])
+    bc = Autoencoder([im, 150, 100, om], isClassification=False)
     bc.pre_training(p_x_train, p_x_test)
-    bc.learn(x_train, x_train, x_test, x_test, isClassification=False)
+    bc.learn(x_train, x_train, x_test, x_test)
     #bc.disp_w()
     bc.final_test(x_test[0:9], y_test[0:9])
