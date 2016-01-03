@@ -31,6 +31,13 @@ class b_classfy(AbstractChain):
     def loss_function(self, x, y):
         return F.softmax_cross_entropy(x, y)
 
+    def forward(self, x_data, train=True):
+        if not isinstance(x_data, Variable):
+            x_data = Variable(x_data)
+        for model in self:
+            x_data = F.dropout(F.relu(model(x_data)), train=train)
+        return x_data
+
     def disp_learn_result(self, train_acc, test_acc):
         """
         display accuracy for test as graph
@@ -68,7 +75,10 @@ class b_classfy(AbstractChain):
             #single test (mini batch size == 1)
             x = x_batch[i:i+1]
             y = y_batch[i:i+1]
-            recog_answer = np.argmax(self.forward(x, train=False).data)
+            if self.is_classification:
+                recog_answer = np.argmax(self.forward(x, train=False).data)
+            else:
+                recog_answer = self.forward(x, train=False).data
             loss = self.loss_function(self.forward(x, train=False), Variable(y))
             answer = y[0]
 
@@ -93,6 +103,7 @@ class b_classfy(AbstractChain):
 
     def __init__(self,
                  n_units,
+                 is_classification=True,
                  pickle_enable=False,
                  plot_enable=True,
                  save_as_png=True,
@@ -102,6 +113,7 @@ class b_classfy(AbstractChain):
 
         AbstractChain.__init__(self,
                                n_units=n_units,
+                               is_classification=is_classification,
                                epoch=epoch,
                                batch_size=batch_size,
                                visualize=True,
@@ -117,7 +129,7 @@ class b_classfy(AbstractChain):
         if pickle_enable:
             pickle.dump(self.model, open('self.model', 'w'), -1)
 
-def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encoder=False):
+def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encoder=False, **keywords):
     print('fetch data')
     sections = [pre_train_size, pre_test_size, train_size, test_size]
     sample = data_manager.data_manager(util.DATA_DIR,
@@ -126,6 +138,7 @@ def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encode
                                        attenate_flag=True,
                                        auto_encoder=auto_encoder,
                                        offset_cancel=True,
+                                       keywords=keywords
                                        ).make_sample(sections)
     p_x_train, p_x_test, x_train, x_test, _ = sample.data
     _, _, y_train, y_test, _ = sample.target
