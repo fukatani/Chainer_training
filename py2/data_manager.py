@@ -133,6 +133,8 @@ class data_manager(object):
             for data, target in zip(sample.data, sample.target):
                 data  -= min_val
                 data  /= max_val
+            if self.auto_encoder:
+                sample.target = sample.data
             return sample
         return wrapper
 
@@ -147,17 +149,24 @@ class data_manager(object):
         sample_data = np.zeros([sample_size, self.data_size], dtype=np.float32)
         sample_target = np.zeros(sample_size, dtype=np.int32)
         sample_index = 0
+
         for name, array in data_dict.items():
             sample_data[sample_index] = array
             sample_target[sample_index] = self.get_target(name)
             sample_index += 1
 
-        perm = np.random.permutation(sample_size)
+        if self.randomization:
+            orders = np.random.permutation(sample_size)
+        elif self.order:
+            orders = np.arange(0, sample_size)
+        elif self.all_same:
+            orders = np.array([i % 5 for i in range(sample_size)])
+
         indexes = []
         for index in section:
             indexes.append(index + sum(indexes))
-        datas = np.split(sample_data[perm], indexes)
-        targets = np.split(sample_target[perm], indexes)
+        datas = np.split(sample_data[orders], indexes)
+        targets = np.split(sample_target[orders], indexes)
 
         return Abstract_sample(datas, targets, len(self.group_suffixes))
 
@@ -168,7 +177,7 @@ class data_manager(object):
                  attenate_flag=False,
                  save_as_png=True,
                  slide=4,
-                 keywords=None):
+                 **keywords):
         self.directory = directory
         self.data_size = data_size
         self.split_mode = split_mode
@@ -186,7 +195,6 @@ class data_manager(object):
 
     def analyse_keywords(self):
         if self.keywords:
-            self.randomization = 'random_sample' in self.keywords.keys()
             self.order = 'order_sample' in self.keywords.keys()
             self.all_same = 'same_sample' in self.keywords.keys()
             if self.all_same:
@@ -197,14 +205,15 @@ class data_manager(object):
             self.offset_cancel = 'offset_cancel' in self.keywords.keys()
             if 'split_mode' in self.keywords.keys():
                 self.split_mode = self.keywords['split_mode']
-            if 'input_data_size' in self.keywords.keys():
-                self.data_size = self.keywords['input_data_size']
+            if 'auto_encoder' in self.keywords.keys():
+                self.auto_encoder = self.keywords['auto_encoder']
         else:
-            self.randomization = False
             self.order = False
             self.all_same = False
             self.denoised_enable = False
             self.offset_cancel = False
+            self.auto_encoder = False
+        self.randomization = not (self.order or self.all_same)
 
 class Abstract_sample(object):
     def __init__(self, data, target, output_matrix_size):

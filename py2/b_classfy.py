@@ -97,7 +97,7 @@ class b_classfy(AbstractChain):
                  plot_enable=True,
                  save_as_png=True,
                  is_clastering=True,
-                 batch_size=20,
+                 batch_size=10,
                  epoch=10,
                  **keywords):
 
@@ -119,19 +119,24 @@ class b_classfy(AbstractChain):
         if pickle_enable:
             pickle.dump(self.model, open('self.model', 'w'), -1)
 
-def set_sample(pre_train_size, pre_test_size, train_size, test_size):
+def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encoder=False):
     print('fetch data')
     sections = [pre_train_size, pre_test_size, train_size, test_size]
-    sample = data_manager.data_manager(
-        util.DATA_DIR, 300,  split_mode='pp', attenate_flag=True).make_sample(sections)
+    sample = data_manager.data_manager(util.DATA_DIR,
+                                       data_size=300,
+                                       split_mode='pp',
+                                       attenate_flag=True,
+                                       auto_encoder=auto_encoder,
+                                       offset_cancel=True,
+                                       ).make_sample(sections)
     p_x_train, p_x_test, x_train, x_test, _ = sample.data
-    _, _, y_train, y_test,_ = sample.target
+    _, _, y_train, y_test, _ = sample.target
     return p_x_train, p_x_test, x_train, x_test, y_train, \
            y_test, sample.input_matrix_size, sample.output_matrix_size
 
 if __name__ == '__main__':
     p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
-                                                    set_sample(1, 1, 120, 40)
+                                                    set_sample(1, 1, 100, 40)
     bc = b_classfy([im, 150, 100, om])
     bc.pre_training(p_x_train, p_x_test)
     bc.learn(x_train, y_train, x_test, y_test, isClassification=True)

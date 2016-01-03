@@ -41,7 +41,7 @@ class AbstractChain(ChainList):
     3) This class is super class of ChainList.
        So you can use function of ChainList.
     """
-    def __init__(self, n_units, epoch=10, batch_size=100, visualize=True, **keywords):
+    def __init__(self, n_units, epoch=10, batch_size=20, visualize=True, **keywords):
         ChainList.__init__(self)
         self.n_units = n_units[0:-1]
         self.last_unit = n_units[-1]
