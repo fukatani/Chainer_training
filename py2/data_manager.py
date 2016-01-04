@@ -130,9 +130,13 @@ class data_manager(object):
             sample = func(self, *args, **kwargs)
             min_val = min(np.min(data) for data in sample.data)
             max_val = max(np.max(data) for data in sample.data)
-            for data, target in zip(sample.data, sample.target):
-                data  -= min_val
-                data  /= max_val
+            if self.offset_cancel:
+                for data, target in zip(sample.data, sample.target):
+                    data = np.array([element - np.average(element) for element in data])
+            else:
+                for data, target in zip(sample.data, sample.target):
+                    data  -= min_val
+                    data  /= max_val
             if self.auto_encoder:
                 sample.target = sample.data
             return sample

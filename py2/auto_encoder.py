@@ -31,10 +31,20 @@ class Autoencoder(b_classfy):
         plt.plot(np.arange(0, x.shape[1], 1), x[0])
         plt.plot(np.arange(0, x.shape[1], 1), y[0])
 
+    def forward(self, x_data, train=True):
+        if not isinstance(x_data, Variable):
+            x_data = Variable(x_data)
+        for i, model in enumerate(self):
+            if i == len(self) - 1 and self.pre_trained:
+                x_data = model(x_data)
+            else:
+                x_data = F.dropout(F.relu(model(x_data)), train=train)
+        return x_data
+
 if __name__ == '__main__':
     p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
-                                                    util.set_sample(1, 1, 120, 40, split_mode='pp',same_sample=5)
-    bc = Autoencoder([im, 150, 150, im], epoch=50, is_classification=False, offset_cancel=True)
+                                                    util.set_sample(1, 1, 120, 40, split_mode='pp',same_sample=1)
+    bc = Autoencoder([im, 200, 150, im], epoch=100, is_classification=False, offset_cancel=True, nobias=True)
     bc.pre_training(p_x_train, p_x_test)
     bc.learn(x_train, x_train, x_test, x_test)
     #bc.disp_w()
