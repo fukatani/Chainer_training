@@ -206,11 +206,16 @@ class data_manager(object):
             self.denoised_enable = 'denoised_enable' in self.keywords.keys()
             if self.denoised_enable:
                 self.noise_coef = self.keywords['denoised_enable']
-            self.offset_cancel = 'offset_cancel' in self.keywords.keys()
+            if 'offset_cancel' in self.keywords.keys():
+                self.offset_cancel = self.keywords['offset_cancel']
+            else:
+                self.offset_cancel = False
             if 'split_mode' in self.keywords.keys():
                 self.split_mode = self.keywords['split_mode']
             if 'auto_encoder' in self.keywords.keys():
                 self.auto_encoder = self.keywords['auto_encoder']
+            else:
+                self.auto_encoder = False
         else:
             self.order = False
             self.all_same = False
