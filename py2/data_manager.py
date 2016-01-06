@@ -163,8 +163,8 @@ class data_manager(object):
             orders = np.random.permutation(sample_size)
         elif self.order:
             orders = np.arange(0, sample_size)
-        elif self.all_same:
-            orders = np.array([i % 5 for i in range(sample_size)])
+        elif self.same_sample:
+            orders = np.array([i % self.sample_kinds for i in range(sample_size)])
 
         indexes = []
         for index in section:
@@ -200,8 +200,8 @@ class data_manager(object):
     def analyse_keywords(self):
         if self.keywords:
             self.order = 'order_sample' in self.keywords.keys()
-            self.all_same = 'same_sample' in self.keywords.keys()
-            if self.all_same:
+            self.same_sample = 'same_sample' in self.keywords.keys()
+            if self.same_sample:
                 self.sample_kinds = self.keywords['same_sample']
             self.denoised_enable = 'denoised_enable' in self.keywords.keys()
             if self.denoised_enable:
@@ -218,11 +218,11 @@ class data_manager(object):
                 self.auto_encoder = False
         else:
             self.order = False
-            self.all_same = False
+            self.same_sample = False
             self.denoised_enable = False
             self.offset_cancel = False
             self.auto_encoder = False
-        self.randomization = not (self.order or self.all_same)
+        self.randomization = not (self.order or self.same_sample)
 
 class Abstract_sample(object):
     def __init__(self, data, target, output_matrix_size):

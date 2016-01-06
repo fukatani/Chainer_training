@@ -100,7 +100,7 @@ def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encode
                                        split_mode=split_mode,
                                        attenate_flag=True,
                                        auto_encoder=auto_encoder,
-                                       keywords=keywords
+                                       **keywords
                                        ).make_sample(sections)
     p_x_train, p_x_test, x_train, x_test, _ = sample.data
     _, _, y_train, y_test, _ = sample.target
