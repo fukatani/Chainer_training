@@ -132,12 +132,12 @@ class data_manager(object):
             max_val = max(np.max(data) for data in sample.data)
             if self.offset_cancel:
                 for data, target in zip(sample.data, sample.target):
+                    data /= max_val
                     data = np.array([element - np.average(element) for element in data])
-                    data  /= max_val
             else:
                 for data, target in zip(sample.data, sample.target):
-                    data  -= min_val
-                    data  /= max_val
+                    data -= min_val
+                    data /= max_val
             if self.auto_encoder:
                 sample.target = sample.data
             return sample

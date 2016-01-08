@@ -43,8 +43,8 @@ class Autoencoder(b_classfy):
 
 if __name__ == '__main__':
     p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
-                                                    util.set_sample(1, 1, 120, 40, split_mode='pp', offset_cancel=True, same_sample=2)
-    bc = Autoencoder([im, 200, 150, im], epoch=100, is_classification=False, nobias=False)
+                                                    util.set_sample(1, 1, 120, 40, split_mode='pp', offset_cancel=True, same_sample=1)
+    bc = Autoencoder([im, 300, 300, im], epoch=100, is_classification=False, nobias=False)
     bc.pre_training(p_x_train, p_x_test)
     bc.learn(x_train, x_train, x_test, x_test)
     #bc.disp_w()
