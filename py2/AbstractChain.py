@@ -147,6 +147,9 @@ class AbstractChain(ChainList):
         if self.visualize:
             self.visualize_net(loss)
 
+        if self.is_classification:
+            return test_accuracy
+
     def visualize_net(self, loss):
         import chainer.computational_graph as c
         g = c.build_computational_graph((loss,))

@@ -133,6 +133,7 @@ class data_manager(object):
             if self.offset_cancel:
                 for data, target in zip(sample.data, sample.target):
                     data = np.array([element - np.average(element) for element in data])
+                    data  /= max_val
             else:
                 for data, target in zip(sample.data, sample.target):
                     data  -= min_val
