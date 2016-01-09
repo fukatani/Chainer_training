@@ -22,7 +22,7 @@ class Autoencoder(Mychain):
     def forward(self, x_data, y_data, train=True, answer=False):
         x, t = Variable(x_data), Variable(y_data)
         h1 = F.dropout(F.relu(self.model.l1(x)),  train=train)
-        h2 = F.dropout(self.model.l2(h1), train=train)
+        h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
         y  = self.model.l3(h2)
         if answer:
             return y.data, F.mean_squared_error(y, t)
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     #Autoencoder(train_size=98, n_epoch=10, n_units=300, same_sample=1, offset_cancel=True)
     Autoencoder(train_size=98,
                 n_epoch=150,
-                n_units=300,
+                n_units=200,
                 same_sample=50,
                 offset_cancel=True,
                 is_clastering=False,
