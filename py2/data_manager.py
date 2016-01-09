@@ -128,14 +128,15 @@ class data_manager(object):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             sample = func(self, *args, **kwargs)
-            min_val = min(np.min(data) for data in sample.data)
-            max_val = max(np.max(data) for data in sample.data)
             if self.offset_cancel:
                 for data, target in zip(sample.data, sample.target):
-                    data -= min_val
-                    data /= max_val
-                    data = np.array([element - np.average(element) for element in data])
+                    data -= np.average(data)
+                max_amp = max(np.abs(np.max(data)) for data in sample.data)
+                for data, target in zip(sample.data, sample.target):
+                    data /= max_amp
             else:
+                min_val = min(np.min(data) for data in sample.data)
+                max_val = max(np.max(data) for data in sample.data)
                 for data, target in zip(sample.data, sample.target):
                     data -= min_val
                     data /= max_val
