@@ -162,6 +162,12 @@ class data_manager(object):
             sample_target[sample_index] = self.get_target(name)
             sample_index += 1
 
+        #TODO
+        if self.spec_target is not None:
+            sample_data = sample_data[np.where(sample_target==self.spec_target)]
+            sample_target = sample_target[np.where(sample_target==self.spec_target)]
+            pass
+
         if self.randomization:
             orders = np.random.permutation(sample_size)
         elif self.order:
@@ -171,7 +177,10 @@ class data_manager(object):
 
         indexes = []
         for index in section:
-            indexes.append(index + sum(indexes))
+            if indexes:
+                indexes.append(index + indexes[-1])
+            else:
+                indexes.append(index)
         datas = np.split(sample_data[orders], indexes)
         targets = np.split(sample_target[orders], indexes)
 
@@ -201,6 +210,13 @@ class data_manager(object):
         self.analyse_keywords()
 
     def analyse_keywords(self):
+        self.order = False
+        self.same_sample = False
+        self.denoised_enable = False
+        self.offset_cancel = False
+        self.auto_encoder = False
+        self.spec_target = None
+
         if self.keywords:
             self.order = 'order_sample' in self.keywords.keys()
             self.same_sample = 'same_sample' in self.keywords.keys()
@@ -211,20 +227,13 @@ class data_manager(object):
                 self.noise_coef = self.keywords['denoised_enable']
             if 'offset_cancel' in self.keywords.keys():
                 self.offset_cancel = self.keywords['offset_cancel']
-            else:
-                self.offset_cancel = False
             if 'split_mode' in self.keywords.keys():
                 self.split_mode = self.keywords['split_mode']
             if 'auto_encoder' in self.keywords.keys():
                 self.auto_encoder = self.keywords['auto_encoder']
-            else:
-                self.auto_encoder = False
-        else:
-            self.order = False
-            self.same_sample = False
-            self.denoised_enable = False
-            self.offset_cancel = False
-            self.auto_encoder = False
+            if 'spec_target' in self.keywords.keys():
+                self.spec_target = self.keywords['spec_target']
+
         self.randomization = not (self.order or self.same_sample)
 
 class Abstract_sample(object):

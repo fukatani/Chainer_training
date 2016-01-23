@@ -26,20 +26,14 @@ class TestSequenceFunctions(unittest.TestCase):
 
         self.assertGreater(bc.learn(x_train, y_train, x_test, y_test), 0.8)
 
-##    def test_auto_encoder(self):
-##        ae = auto_encoder.Autoencoder(train_size=98,
-##                                      n_epoch=6,
-##                                      n_units=300,
-##                                      same_sample=10,
-##                                      offset_cancel=True,
-##                                      is_clastering=False,
-##                                      input_data_size=300,
-##                                      split_mode='pp',
-##                                      save_as_png=False,
-##                                      plot_enable=False,
-##                                      final_test_enable=False
-##                                      )
-##        self.assertLess(ae.last_loss, 0.01)
+    def test_auto_encoder(self):
+        p_x_train, p_x_test, x_train, x_test, y_train, y_test, im, om = \
+                                                        util.set_sample(60, 1, 40, 20, split_mode='pp', offset_cancel=True, same_sample=10)
+        bc = Autoencoder.Autoencoder([im, 200, 150, im], epoch=40, is_classification=False, nobias=False)
+        bc.pre_training(p_x_train, p_x_test)
+        bc.learn(x_train, x_train, x_test, x_test)
+        #bc.disp_w()
+        self.assertLess(bc.final_test(x_test[0:9], x_test[0:9]), 0.1)
 
 if __name__ == '__main__':
     unittest.main()
