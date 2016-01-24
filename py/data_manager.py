@@ -221,8 +221,10 @@ class data_manager(object):
         self.same_sample = False
         self.denoised_enable = False
         self.offset_cancel = False
+        self.first_cancel = False
         self.auto_encoder = False
         self.spec_target = None
+        self.normal_constant = None
 
         if self.keywords:
             self.order = 'order_sample' in self.keywords.keys()
@@ -242,6 +244,9 @@ class data_manager(object):
                 self.auto_encoder = self.keywords['auto_encoder']
             if 'spec_target' in self.keywords.keys():
                 self.spec_target = self.keywords['spec_target']
+            if 'normal_constant' in self.keywords.keys():
+                self.normal_constant = self.keywords['normal_constant']
+
 
         self.randomization = not (self.order or self.same_sample)
 

@@ -64,7 +64,7 @@ class b_classfy(AbstractChain):
         plt.plot()
         plt.show()
 
-    def final_test(self, x_batch, y_batch=None):
+    def final_test(self, x_batch, y_batch=None, disp_result=True):
         plt.close('all')
         plt.style.use('fivethirtyeight')
         #size = 28
@@ -92,7 +92,8 @@ class b_classfy(AbstractChain):
                 np.savetxt(''.join((util.DUMP_DIR + 'final_result', str(i), '.dump')), y)
         if self.save_as_png:
             plt.savefig(os.path.join(util.IMAGE_DIR, 'final_test.png'))
-        plt.show()
+        if disp_result:
+            plt.show()
 
     def get_final_test_title(self, answer, recog_answer, loss=None):
         return "ans=%d, recog=%d"%(answer, recog_answer)
