@@ -168,7 +168,7 @@ class ChildChainList(ChainList):
     so I don't expect to configurate forward, forward_as_autoencoder and learn_as_autoencoder.
     But you can configurate optimizer by editting __init__.
     """
-    def __init__(self, link, epoch=10, batch_size=100, visualize=True):
+    def __init__(self, link, epoch=20, batch_size=100, visualize=True):
         ChainList.__init__(self, link)
         self.optimizer = optimizers.AdaDelta()
         self.optimizer.setup(self)

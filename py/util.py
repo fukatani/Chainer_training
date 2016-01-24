@@ -11,6 +11,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import data_manager
 
 DUMP_DIR = '../dump_files'
 IMAGE_DIR = '../Image'
@@ -90,6 +91,21 @@ def read_all_data(directory, extension='.dat'):
         read_file.close()
         raw_data_dict[file_name] = new_array
     return raw_data_dict
+
+def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encoder=False, split_mode='slide', **keywords):
+    print('fetch data')
+    sections = [pre_train_size, pre_test_size, train_size, test_size]
+    sample = data_manager.data_manager(DATA_DIR,
+                                       data_size=300,
+                                       split_mode=split_mode,
+                                       attenate_flag=True,
+                                       auto_encoder=auto_encoder,
+                                       **keywords
+                                       ).make_sample(sections)
+    p_x_train, p_x_test, x_train, x_test, _ = sample.data
+    _, _, y_train, y_test, _ = sample.target
+    return p_x_train, p_x_test, x_train, x_test, y_train, \
+           y_test, sample.input_matrix_size, sample.output_matrix_size
 
 if __name__ == '__main__':
     #simple_plot(np.array([1,2,3]))

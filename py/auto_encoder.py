@@ -10,124 +10,52 @@
 #-------------------------------------------------------------------------------
 
 #%matplotlib inline
-from n_for_b import Mychain
-from data_manager import data_manager, Abstract_sample
-from chainer import cuda, Variable, FunctionSet, optimizers
+from b_classfy import b_classfy
+from chainer import cuda, Variable, optimizers
 import chainer.functions as F
 import numpy as np
 import util
 
-#constructing newral network
-class Autoencoder(Mychain):
-    def forward(self, x_data, y_data, train=True, answer=False):
-        x, t = Variable(x_data), Variable(y_data)
-        h1 = F.dropout(F.relu(self.model.l1(x)),  train=train)
-        h2 = F.dropout(F.relu(self.model.l2(h1)), train=train)
-        y  = self.model.l3(h2)
-        if answer:
-            return y.data, F.mean_squared_error(y, t)
-        else:
-            return F.mean_squared_error(y, t)#, F.accuracy(y, t)
+class Autoencoder(b_classfy):
+    def add_last_layer(self):
+        self.add_link(F.Linear(self.n_units[-1], self.last_unit, nobias=self.nobias))
 
-    def set_sample(self):
-        print('fetch data')
-        self.train_sample, self.test_sample = dm_for_ae(util.DATA_DIR
-            , 1000, self.train_size, attenate_flag=True, slide=4, keywords=self.keywords).make_sample()
-        self.input_matrix_size = self.train_sample.input_matrix_size
-        self.output_matrix_size = self.train_sample.output_matrix_size
+    def loss_function(self, x, y):
+        return F.mean_squared_error(x, y)
 
     def get_final_test_title(self, answer, recog, loss):
         return str(loss.data)
 
     def final_test_plot(self, x, y):
         import matplotlib.pyplot as plt
-        plt.plot(np.arange(0, self.input_matrix_size, 1), x[0])
-        plt.plot(np.arange(0, self.input_matrix_size, 1), y)
+        plt.plot(np.arange(0, x.shape[1], 1), x[0])
+        plt.plot(np.arange(0, x.shape[1], 1), y[0])
 
-class dm_for_ae(data_manager):
-
-    def offset_minus(self, data):
-        return np.array([element - np.average(element) for element in data])
-
-    def process_sample_backend_ae(func):
-        import datetime
-        from functools import wraps
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            train, test = func(self, *args, **kwargs)
-            train.data  -= np.min(train.data)
-            train.data  /= np.max(train.data)
-            train.target = np.array(train.data)
-            if self.denoised_enable: # Add noise
-                train.data += (np.random.normal(size = train.data.shape) / self.noise_coef)
-
-            test.data  -= np.min(test.data)
-            test.data  /= np.max(test.data)
-            test.target = np.array(test.data)
-            if self.offset_cancel:
-                train.data = self.offset_minus(train.data)
-                train.target = self.offset_minus(train.target)
-                test.data = self.offset_minus(test.data)
-                test.target = self.offset_minus(test.target)
-            return train, test
-        return wrapper
-
-    @process_sample_backend_ae
-    def make_sample(self):
-        """ [Functions]
-            Make sample for analysis by chainer.
-        """
-        data_dict = self.get_data()
-        sample_size = len(data_dict.keys())
-        #train_size = 50
-
-        #initialize
-        train_data = np.zeros([self.train_size, self.data_size], dtype=np.float32)
-        test_data = np.zeros([sample_size - self.train_size, self.data_size], dtype=np.float32)
-        train_target = np.zeros([sample_size, self.data_size], dtype=np.float32)
-        test_target = np.zeros([sample_size - self.train_size, self.data_size], dtype=np.float32)
-
-        sample_index = 0
-        if self.randomization:
-            sample_data = np.array(data_dict.values())
-            perm = np.random.permutation(sample_size)
-            train_data = sample_data[perm[0:self.train_size]]
-            test_data = sample_data[perm[self.train_size:]]
-        elif self.order:
-            for name, array in data_dict.items():
-                if sample_index < self.train_size:
-                    train_data[sample_index] = array
-                else:
-                    test_data[sample_index-self.train_size] = array
-                sample_index += 1
-        elif self.all_same:
-            for name, array in data_dict.items():
-                if sample_index < self.train_size:
-                    train_data[sample_index] = data_dict.values()[sample_index % self.sample_kinds]
-                else:
-                    test_data[sample_index-self.train_size] = data_dict.values()[sample_index % self.sample_kinds]
-                sample_index += 1
-        else:
-            for name, array in data_dict.items():
-                if name[0:2] == 'fu' and train_data.shape[0] > sample_index:
-                    train_data[sample_index] = array
-                elif name[0:2] == 'in' and train_data.shape[0] > sample_index:
-                    test_data[sample_index-self.train_size] = array
-                sample_index += 1
-
-        return (Abstract_sample(train_data, train_target, train_target[0].size),
-                Abstract_sample(test_data, test_target, test_target[0].size))
+    def forward(self, x_data, train=True):
+        if not isinstance(x_data, Variable):
+            x_data = Variable(x_data)
+        for i, model in enumerate(self):
+            if i == len(self) - 1 and self.pre_trained:
+                x_data = model(x_data)
+            else:
+                x_data = F.dropout(F.relu(model(x_data)), train=train)
+        return x_data
 
 if __name__ == '__main__':
-    #Autoencoder(train_size=98, n_epoch=10, n_units=300, same_sample=1, offset_cancel=True)
-    Autoencoder(train_size=98,
-                n_epoch=150,
-                n_units=200,
-                same_sample=50,
-                offset_cancel=True,
-                is_clastering=False,
-                input_data_size=300,
-                split_mode='pp',
-                nobias=True,
-                #dump_final_result=True
-                )
+    p_x_train0, p_x_test0, x_train0, x_test0, y_train0, y_test0, im, om = \
+        util.set_sample(60, 1, 40, 20,
+                        split_mode='pp',
+                        offset_cancel=True,
+                        same_sample=50,
+                        spec_target=0)
+    p_x_train1, p_x_test1, x_train1, x_test1, y_train1, y_test1, im, om = \
+        util.set_sample(60, 1, 40, 20,
+                        split_mode='pp',
+                        offset_cancel=True)
+
+    bc = Autoencoder([im, 200, 150, 100, im], epoch=100, is_classification=False, nobias=False)
+    bc.pre_training(p_x_train0, p_x_test0)
+    bc.learn(x_train0, x_train0, x_test0, x_test0)
+    #bc.disp_w()
+    #bc.final_test(x_test1[0:9], x_test1[0:9])
+    bc.final_test(x_test0[0:9], x_test0[0:9])

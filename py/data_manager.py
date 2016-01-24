@@ -31,6 +31,7 @@ class data_manager(object):
             while i * self.offset_width + self.data_size < self.array_size:
                 self.splited_data_dict[name + '_s' + str(i)] = data_array[i * self.offset_width: i * self.offset_width + self.data_size]
                 i += 1
+
     def split_by_peak(self):
         from scipy import signal
         self.splited_data_dict = OrderedDict()
@@ -39,6 +40,8 @@ class data_manager(object):
             max_indexes = signal.argrelmax(m_buttored)[0]
             i = 0
             for max_index in max_indexes:
+                if len(data_array) - max_index < self.data_size:
+                    break
                 self.splited_data_dict[name + '_s' + str(i)] = data_array[max_index: max_index + self.data_size]
                 i += 1
 
@@ -124,55 +127,75 @@ class data_manager(object):
         from functools import wraps
         @wraps(func)
         def wrapper(self, *args, **kwargs):
-            train, test = func(self, *args, **kwargs)
-            train.data  -= np.min(train.data)
-            train.data  /= np.max(train.data)
-            train.target = train.target.astype(np.int32)
-            test.data  -= np.min(test.data)
-            test.data  /= np.max(test.data)
-            test.target = test.target.astype(np.int32)
-            return train, test
+            sample = func(self, *args, **kwargs)
+            if self.offset_cancel:
+                for data, target in zip(sample.data, sample.target):
+                    data -= np.average(data)
+                max_amp = max(np.abs(np.max(data)) for data in sample.data)
+                for data, target in zip(sample.data, sample.target):
+                    data /= max_amp
+            else:
+                min_val = min(np.min(data) for data in sample.data)
+                max_val = max(np.max(data) for data in sample.data)
+                for data, target in zip(sample.data, sample.target):
+                    data -= min_val
+                    data /= max_val
+            if self.auto_encoder:
+                sample.target = sample.data
+            return sample
         return wrapper
 
     @process_sample_backend
-    def make_sample(self):
+    def make_sample(self, section=[100, 100]):
         """ [Functions]
             Make sample for analysis by chainer.
         """
         data_dict = self.get_data()
         sample_size = len(data_dict.keys())
-
         #initialize
         sample_data = np.zeros([sample_size, self.data_size], dtype=np.float32)
-        sample_target = np.zeros(sample_size)
-
+        sample_target = np.zeros(sample_size, dtype=np.int32)
         sample_index = 0
+
         for name, array in data_dict.items():
             sample_data[sample_index] = array
             sample_target[sample_index] = self.get_target(name)
             sample_index += 1
 
-        perm = np.random.permutation(sample_size)
-        train_data = sample_data[perm[0:self.train_size]]
-        train_target = sample_target[perm[0:self.train_size]]
-        test_data = sample_data[perm[self.train_size:]]
-        test_target = sample_target[perm[self.train_size:]]
+        #TODO
+        if self.spec_target is not None:
+            sample_data = sample_data[np.where(sample_target==self.spec_target)]
+            sample_target = sample_target[np.where(sample_target==self.spec_target)]
+            pass
 
-        return (Abstract_sample(train_data, train_target, len(self.group_suffixes)),
-                Abstract_sample(test_data, test_target, len(self.group_suffixes)))
+        if self.randomization:
+            orders = np.random.permutation(sample_size)
+        elif self.order:
+            orders = np.arange(0, sample_size)
+        elif self.same_sample:
+            orders = np.array([i % self.sample_kinds for i in range(sample_size)])
+
+        indexes = []
+        for index in section:
+            if indexes:
+                indexes.append(index + indexes[-1])
+            else:
+                indexes.append(index)
+        datas = np.split(sample_data[orders], indexes)
+        targets = np.split(sample_target[orders], indexes)
+
+        return Abstract_sample(datas, targets, len(self.group_suffixes))
 
     def __init__(self,
                  directory,
-                 data_size=10000,
-                 train_size=100,
+                 data_size=1000,
                  split_mode='slide',
                  attenate_flag=False,
                  save_as_png=True,
                  slide=4,
-                 keywords=None):
+                 **keywords):
         self.directory = directory
         self.data_size = data_size
-        self.train_size = train_size
         self.split_mode = split_mode
         self.offset_width = self.data_size / slide
         self.attenate_flag = attenate_flag
@@ -187,37 +210,41 @@ class data_manager(object):
         self.analyse_keywords()
 
     def analyse_keywords(self):
+        self.order = False
+        self.same_sample = False
+        self.denoised_enable = False
+        self.offset_cancel = False
+        self.auto_encoder = False
+        self.spec_target = None
+
         if self.keywords:
-            self.randomization = 'random_sample' in self.keywords.keys()
             self.order = 'order_sample' in self.keywords.keys()
-            self.all_same = 'same_sample' in self.keywords.keys()
-            if self.all_same:
+            self.same_sample = 'same_sample' in self.keywords.keys()
+            if self.same_sample:
                 self.sample_kinds = self.keywords['same_sample']
             self.denoised_enable = 'denoised_enable' in self.keywords.keys()
             if self.denoised_enable:
                 self.noise_coef = self.keywords['denoised_enable']
-            self.offset_cancel = 'offset_cancel' in self.keywords.keys()
+            if 'offset_cancel' in self.keywords.keys():
+                self.offset_cancel = self.keywords['offset_cancel']
             if 'split_mode' in self.keywords.keys():
                 self.split_mode = self.keywords['split_mode']
-            if 'input_data_size' in self.keywords.keys():
-                self.data_size = self.keywords['input_data_size']
-        else:
-            self.randomization = False
-            self.order = False
-            self.all_same = False
-            self.denoised_enable = False
-            self.offset_cancel = False
+            if 'auto_encoder' in self.keywords.keys():
+                self.auto_encoder = self.keywords['auto_encoder']
+            if 'spec_target' in self.keywords.keys():
+                self.spec_target = self.keywords['spec_target']
+
+        self.randomization = not (self.order or self.same_sample)
 
 class Abstract_sample(object):
     def __init__(self, data, target, output_matrix_size):
         self.data = data
-        self.input_matrix_size = data[0].size
+        self.input_matrix_size = data[0].shape[-1]
         self.target = target
         self.output_matrix_size = output_matrix_size
-        self.sample_size = target.size / target[0].size
+        #self.sample_size = target.size / target[0].size
 
 if __name__ == '__main__':
-    #dm = data_manager('./numbers', 1000, 100, split_mode='slide', attenate_flag=True, save_as_png=False)
-    dm = data_manager(util.DATA_DIR, 300, 100, split_mode='pp', attenate_flag=True, save_as_png=False)
-    dm.plot()
-    #dm.make_sample()
+    dm = data_manager(util.DATA_DIR, 300, split_mode='pp', attenate_flag=True, save_as_png=False)
+    #dm.plot()
+    dm.make_sample()
