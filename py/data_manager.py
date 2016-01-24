@@ -134,6 +134,13 @@ class data_manager(object):
                 max_amp = max(np.abs(np.max(data)) for data in sample.data)
                 for data, target in zip(sample.data, sample.target):
                     data /= max_amp
+            elif self.first_cancel:
+                for data, target in zip(sample.data, sample.target):
+                    for i, array in enumerate(data):
+                        data[i] = array = util.first_cancel(array)
+                max_amp = max(np.abs(np.max(data)) for data in sample.data)
+                for data, target in zip(sample.data, sample.target):
+                    data /= max_amp
             else:
                 min_val = min(np.min(data) for data in sample.data)
                 max_val = max(np.max(data) for data in sample.data)
@@ -227,6 +234,8 @@ class data_manager(object):
                 self.noise_coef = self.keywords['denoised_enable']
             if 'offset_cancel' in self.keywords.keys():
                 self.offset_cancel = self.keywords['offset_cancel']
+            if 'first_cancel' in self.keywords.keys():
+                self.first_cancel = self.keywords['first_cancel']
             if 'split_mode' in self.keywords.keys():
                 self.split_mode = self.keywords['split_mode']
             if 'auto_encoder' in self.keywords.keys():

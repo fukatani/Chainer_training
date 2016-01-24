@@ -107,6 +107,12 @@ def set_sample(pre_train_size, pre_test_size, train_size, test_size, auto_encode
     return p_x_train, p_x_test, x_train, x_test, y_train, \
            y_test, sample.input_matrix_size, sample.output_matrix_size
 
+def first_cancel(array):
+    import numpy
+    cancel = numpy.fromfunction(lambda i: -(array[0] - array[-1]) / array.shape[0]\
+             * i + array[0], (array.shape[0],), dtype=array.dtype)
+    return array - cancel
+
 if __name__ == '__main__':
     #simple_plot(np.array([1,2,3]))
     #a = np.array([1,2,3,4,3,6,9,8,10,7,6,5,3,1])
