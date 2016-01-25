@@ -120,9 +120,9 @@ class data_manager(object):
         return spectrogram_dict
 
     def get_data_divider(self, data):
-        if self.normal_constant is None:
-            self.normal_constant = max(np.max(each_data) for each_data in data)
-        return self.normal_constant
+        if self.__class__.normal_constant is None:
+            self.__class__.normal_constant = max(np.max(each_data) for each_data in data)
+        return self.__class__.normal_constant
 
     def process_sample_backend(func):
         """
@@ -229,7 +229,7 @@ class data_manager(object):
         self.first_cancel = False
         self.auto_encoder = False
         self.spec_target = None
-        self.normal_constant = None
+        self.div_reference = False
 
         if self.keywords:
             self.order = 'order_sample' in self.keywords.keys()
@@ -249,9 +249,12 @@ class data_manager(object):
                 self.auto_encoder = self.keywords['auto_encoder']
             if 'spec_target' in self.keywords.keys():
                 self.spec_target = self.keywords['spec_target']
+            if 'div_reference' in self.keywords.keys():
+                self.div_reference = self.keywords['div_reference']
             if 'normal_constant' in self.keywords.keys():
-                self.normal_constant = self.keywords['normal_constant']
-
+                self.__class__.normal_constant = self.keywords['normal_constant']
+            else:
+                self.__class__.normal_constant = None
 
         self.randomization = not (self.order or self.same_sample)
 

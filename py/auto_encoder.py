@@ -55,6 +55,7 @@ if __name__ == '__main__':
         util.set_sample(60, 1, 40, 20,
                         split_mode='pp',
                         offset_cancel=True,
+                        div_reference=True,
                         #normal_constant=1709.0,
                         )
 
