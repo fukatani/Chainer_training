@@ -121,9 +121,8 @@ class data_manager(object):
 
     def get_data_divider(self, data):
         if self.normal_constant is None:
-            return max(np.max(each_data) for each_data in data)
-        else:
-            return self.normal_constant
+            self.normal_constant = max(np.max(each_data) for each_data in data)
+        return self.normal_constant
 
     def process_sample_backend(func):
         """
