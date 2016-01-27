@@ -23,8 +23,8 @@ class Autoencoder(b_classfy):
     def loss_function(self, x, y):
         return F.mean_squared_error(x, y)
 
-    def get_final_test_title(self, answer, recog, loss):
-        return str(loss.data)
+    def get_final_test_title(self, answer, recog, data):
+        return str(data)
 
     def final_test_plot(self, x, y):
         import matplotlib.pyplot as plt
@@ -48,20 +48,20 @@ if __name__ == '__main__':
                         #offset_cancel=True,
                         first_cancel=True,
                         #normal_constant=1709.0,
-                        same_sample=50,
+                        same_sample=70,
                         spec_target=0,
                         )
     p_x_train1, p_x_test1, x_train1, x_test1, y_train1, y_test1, im, om = \
         util.set_sample(60, 1, 40, 20,
                         split_mode='pp',
-                        offset_cancel=True,
+                        first_cancel=True,
                         div_reference=True,
                         #normal_constant=1709.0,
                         )
 
-    bc = Autoencoder([im, 150, 100, 100, im], epoch=100, is_classification=False, nobias=True)
+    bc = Autoencoder([im, 150, 120, im], epoch=100, is_classification=False, nobias=True)
     bc.pre_training(p_x_train0, p_x_test0)
     bc.learn(x_train0, x_train0, x_test0, x_test0)
     #bc.disp_w()
-    #bc.final_test(x_test1[0:9], x_test1[0:9])
-    bc.final_test(x_test0[0:9], x_test0[0:9])
+    bc.final_test(x_test1[0:9], x_test1[0:9])
+    #bc.final_test(x_test0[0:9], x_test0[0:9])

@@ -83,7 +83,8 @@ class b_classfy(AbstractChain):
 
             plt.subplot(3, 3, i+1)
             self.final_test_plot(x, recog_answer)
-            plt.title(self.get_final_test_title(answer, recog_answer, loss), size=8)
+            plt.title(self.get_final_test_title(answer, recog_answer, \
+                    loss.data / (np.sort(x)[0][-10]-np.sort(x)[0][10])), size=8)
             plt.tick_params(labelbottom="off")
             plt.tick_params(labelleft="off")
             if 'dump_final_result' in self.keywords.keys():
