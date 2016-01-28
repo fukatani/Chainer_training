@@ -65,3 +65,4 @@ if __name__ == '__main__':
     #bc.disp_w()
     bc.final_test(x_test1[0:9], x_test1[0:9])
     #bc.final_test(x_test0[0:9], x_test0[0:9])
+    bc.serialize_to_hdf5("ae_model.gz")

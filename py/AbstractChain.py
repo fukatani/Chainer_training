@@ -11,7 +11,7 @@
 
 from chainer import cuda, Variable, optimizers
 import chainer.functions as F
-from chainer import ChainList, optimizers
+from chainer import ChainList, serializers
 import numpy as np
 import six
 import pt_linear as P
@@ -158,6 +158,8 @@ class AbstractChain(ChainList):
         with open('graph.dot', 'w') as o:
             o.write(g.dump())
 
+    def serialize_to_hdf5(self, filename):
+        serializers.save_hdf5(filename, self)
 
 class ChildChainList(ChainList):
     """
