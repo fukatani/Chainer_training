@@ -102,7 +102,7 @@ class data_manager(object):
             plt.plot(x, y, label=name)
         plt.legend()
         if self.save_as_png:
-            plt.savefig(os.path.join(util.IMAGE_DIR,'data.png'))
+            plt.savefig(os.path.join(util.IMAGE_DIR, 'data.png'))
         else:
             plt.show()
 
@@ -114,7 +114,7 @@ class data_manager(object):
         from scipy import signal
         spectrogram_dict = OrderedDict()
 
-        for name, data in data_dict.items():
+        for _, data in data_dict.items():
             f, t, Sxx = signal.spectrogram(data, fs=1)
             plt.pcolormesh(t, f, Sxx)
         return spectrogram_dict
@@ -174,11 +174,9 @@ class data_manager(object):
             sample_target[sample_index] = self.get_target(name)
             sample_index += 1
 
-        #TODO
         if self.spec_target is not None:
-            sample_data = sample_data[np.where(sample_target==self.spec_target)]
-            sample_target = sample_target[np.where(sample_target==self.spec_target)]
-            pass
+            sample_data = sample_data[np.where(sample_target == self.spec_target)]
+            sample_target = sample_target[np.where(sample_target == self.spec_target)]
 
         if self.randomization:
             orders = np.random.permutation(sample_size)

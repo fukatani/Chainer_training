@@ -42,7 +42,7 @@ class AbstractChain(ChainList):
     3) This class is super class of ChainList.
        So you can use function of ChainList.
     """
-    def __init__(self, n_units, epoch=10, batch_size=20, visualize=True, is_classification=True,**keywords):
+    def __init__(self, n_units, epoch=10, batch_size=20, visualize=True, is_classification=True, **keywords):
         ChainList.__init__(self)
         self.n_units = n_units[0:-1]
         self.last_unit = n_units[-1]
@@ -158,8 +158,8 @@ class AbstractChain(ChainList):
         with open('graph.dot', 'w') as o:
             o.write(g.dump())
 
-    def serialize_to_hdf5(self, filename):
-        serializers.save_hdf5(filename, self)
+    def get_link(self, i):
+        return self[i]
 
 class ChildChainList(ChainList):
     """

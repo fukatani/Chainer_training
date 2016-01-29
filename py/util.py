@@ -81,7 +81,7 @@ def read_all_data(directory, extension='.dat'):
     import os
     from collections import OrderedDict
     raw_data_dict = OrderedDict()
-    array_size = min([get_sum_line(os.path.join(directory, name)) for name in os.listdir(directory)])
+    #array_size = min([get_sum_line(os.path.join(directory, name)) for name in os.listdir(directory)])
     for file_name in os.listdir(directory):
         if file_name[-len(extension):] != extension: continue
         read_file = open(os.path.join(directory, file_name), 'r')

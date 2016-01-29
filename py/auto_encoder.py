@@ -11,7 +11,7 @@
 
 #%matplotlib inline
 from b_classfy import b_classfy
-from chainer import cuda, Variable, optimizers
+from chainer import Variable, optimizers, serializers
 import chainer.functions as F
 import numpy as np
 import util
@@ -65,4 +65,4 @@ if __name__ == '__main__':
     #bc.disp_w()
     bc.final_test(x_test1[0:9], x_test1[0:9])
     #bc.final_test(x_test0[0:9], x_test0[0:9])
-    bc.serialize_to_hdf5("ae_model.gz")
+    serializers.save_hdf5("ae_model.gz", bc)
